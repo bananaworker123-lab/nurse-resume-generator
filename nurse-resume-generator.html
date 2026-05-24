@@ -88,23 +88,25 @@ hr.lang-div{margin:2px 0;border:none;border-top:1px solid var(--border);}
 .prev-tabs{display:flex;background:#CBC6BE;border-bottom:1px solid #B8B3AB;}
 .prev-tab{flex:1;padding:9px 4px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border:none;background:none;cursor:pointer;color:#888;border-bottom:2px solid transparent;transition:all .2s;}
 .prev-tab.active{color:#3A3530;border-bottom-color:#3A3530;}
-.prev-body{flex:1;padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:20px;}
+.prev-body{flex:1;padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:20px;overflow-x:auto;}
 
 /* ════ RESUME PAPER BASE ════ */
-.paper{background:var(--white);width:100%;max-width:640px;box-shadow:0 6px 40px rgba(0,0,0,.18);font-family:'Lato',sans-serif;color:#1A1A1A;line-height:1.5;}
+/* Fixed 640px width = exact Playwright PDF viewport — never fluid */
+/* min-height:828px = 640 × (11/8.5) — one US Letter page at this scale */
+.paper{background:var(--white);width:640px;min-height:828px;box-shadow:0 6px 40px rgba(0,0,0,.18);font-family:'Lato',sans-serif;color:#1A1A1A;line-height:1.5;}
 /* Thai language: use Sarabun which has full Thai glyph support */
 :lang(th) .paper, .paper.lang-th { font-family:'Sarabun','Lato',sans-serif; }
 :lang(th) .r-sec, .lang-th .r-sec,
 :lang(th) .r-sg-lbl, .lang-th .r-sg-lbl { font-family:'Sarabun','Montserrat',sans-serif; letter-spacing:0.5px; }
 /* Page gap between paper cards in preview (visual separator, NOT printed) */
-.page-gap-marker{width:100%;max-width:640px;height:20px;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-size:7px;letter-spacing:2px;color:#BBB;font-weight:600;text-transform:uppercase;}
+.page-gap-marker{width:640px;height:20px;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-size:7px;letter-spacing:2px;color:#BBB;font-weight:600;text-transform:uppercase;}
 .page-gap-marker::before{content:'─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─';}
 /* Spacer at top of pages 2+ in preview and PDF */
 .page-top-spacer{display:block;}
 /* Print: hide gap markers, each .paper prints as its own page */
 @media print{
   .page-gap-marker{display:none;}
-  .paper{page-break-after:always;break-after:page;}
+  .paper{page-break-after:always;break-after:page;width:100%!important;min-height:0!important;}
   .paper:last-child{page-break-after:avoid;break-after:avoid;}
 }
 
@@ -432,7 +434,7 @@ hr.lang-div{margin:2px 0;border:none;border-top:1px solid var(--border);}
   <div class="prev-body" id="prevBody">
     <!-- Resume viewer — full scrollable, auto page breaks -->
     <div id="resume-viewer" style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">
-      <div id="resume-scroll-wrap" style="width:100%;max-width:640px;display:flex;flex-direction:column;align-items:stretch;gap:16px;">
+      <div id="resume-scroll-wrap" style="width:640px;display:flex;flex-direction:column;align-items:stretch;gap:16px;">
         <div class="paper" id="prev-resume1"></div>
       </div>
     </div>
@@ -1014,12 +1016,10 @@ function showFormTab(id,el){
 }
 // ── PAGE NAVIGATION STATE ──
 let currentPageIdx = 0;
-// Page height is dynamic — paper preview is 640px wide (not 816px/8.5in)
-// Letter: 640 × (11/8.5) ≈ 827px; A4: 640 × (297/210) ≈ 906px
+// Paper is always 640px wide (fixed). US Letter height = 640 × 11/8.5 = 828px.
+// This matches Playwright's effective page height: (11in at 96dpi) / scale 1.275 = 829px.
 function getPageH(){
-  const paper = document.getElementById('prev-resume1');
-  const w = (paper && paper.clientWidth) || 640;
-  return Math.round(w * 11/8.5); // Letter ratio
+  return 828;
 }
 
 function showPrev(id,el){
