@@ -1360,7 +1360,15 @@ function insertPageBreaks(paper){
             const elTop = r.top - pgT;
             const elBot = r.bottom - pgT;
             if(elTop >= pageH - 2 || elBot > rrAvail){
-              _pbSplitRight(pg, el, langClass);
+              // Don't leave orphaned section headers: if the element just before
+              // the split point is a bare r-sec (no content between it and here),
+              // move that header to the next page too — same logic as sidebar.
+              let splitEl = el;
+              while(splitEl.previousElementSibling &&
+                    splitEl.previousElementSibling.classList.contains('r-sec')){
+                splitEl = splitEl.previousElementSibling;
+              }
+              _pbSplitRight(pg, splitEl, langClass);
               didSplit = true; break;
             }
           }
@@ -1798,15 +1806,17 @@ function collectData(){
   if(!refs.length)    useDEF.push('References');
   window.__usingDEF__ = useDEF;
 
+  // Fall back to DEF sample data only when the user has NEVER added entries
+  // (counter === 0). Once they've added and then deleted entries, show empty.
   return{
     ...u,
-    certs:certs.length?certs:DEF.certs,
-    edu:edu.length?edu:DEF.edu,
-    work:work.length?work:DEF.work,
+    certs:certs.length?certs:(certN>0?[]:DEF.certs),
+    edu:edu.length?edu:(eduN>0?[]:DEF.edu),
+    work:work.length?work:(workN>0?[]:DEF.work),
     rots:rots.length?rots:DEF.rots,
-    achieve:achieve.length?achieve:DEF.achieve,
-    proDev:proDev.length?proDev:DEF.proDev,
-    refs:refs.length?refs:DEF.refs,
+    achieve:achieve.length?achieve:(achN>0?[]:DEF.achieve),
+    proDev:proDev.length?proDev:(pdN>0?[]:DEF.proDev),
+    refs:refs.length?refs:(refN>0?[]:DEF.refs),
     clMgr:gv('clMgr')||DEF.clMgr, clTitle:gv('clTitle')||DEF.clTitle,
     clCompany:gv('clCompany')||DEF.clCompany,
     clP1:gv('clP1')||DEF.clP1, clP2:gv('clP2')||DEF.clP2, clP3:gv('clP3')||DEF.clP3,
