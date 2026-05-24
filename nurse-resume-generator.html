@@ -1713,6 +1713,7 @@ function collectData(){
 }
 
 // ── MAIN RENDER ──
+let _rpRafId = null;
 function rp(){
   const d=collectData();
   applyMargins();
@@ -1729,8 +1730,12 @@ function rp(){
   if(elC) elC.innerHTML=renderCover(d);
   if(elR) elR.innerHTML=renderRefs(d);
   checkOverflow();
-  // Insert visual page break markers after render + layout
-  requestAnimationFrame(()=>{
+  // Cancel any stale rAF — only the last rp() call should run insertPageBreaks.
+  // Without this, bulk addWork calls (e.g. 12 entries) queue 12 rAFs; each one
+  // cleans up the previous split, leaving only page 1.
+  if(_rpRafId) cancelAnimationFrame(_rpRafId);
+  _rpRafId = requestAnimationFrame(()=>{
+    _rpRafId = null;
     const paper = document.getElementById('prev-resume1');
     if(paper && prevMode==='resume1') insertPageBreaks(paper);
   });
