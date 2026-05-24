@@ -1383,6 +1383,11 @@ function insertPageBreaks(paper){
           }
           // Fallback: bottom padding causes overflow but no child exceeds page boundary
           if(splitIdx === -1) splitIdx = kids.length - 1;
+          // Don't leave orphaned section headers: if the item just before the split
+          // is a section header with no content after it, move that header to the next page too.
+          while(splitIdx > 0 && kids[splitIdx - 1].classList.contains('r-sec')){
+            splitIdx--;
+          }
           if(splitIdx >= 0){
             let lastSec = '';
             for(let j=splitIdx-1;j>=0;j--){
