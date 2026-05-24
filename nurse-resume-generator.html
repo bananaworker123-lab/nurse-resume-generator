@@ -54,6 +54,7 @@ header{background:var(--white);border-bottom:1px solid var(--border);padding:14p
 .sw[data-c="rose"]{background:#C4897A;}
 .sw[data-c="slate"]{background:#7A95AF;}
 .sw[data-c="mauve"]{background:#A67B8A;}
+.sw[data-c="midnight"]{background:#2D4163;}
 .sw-lbl{font-size:8px;letter-spacing:1px;color:var(--mid);text-transform:uppercase;}
 /* Version tabs */
 .vtabs{display:flex;border:1px solid var(--border);border-radius:3px;overflow:hidden;}
@@ -324,6 +325,7 @@ hr.lang-div{margin:2px 0;border:none;border-top:1px solid var(--border);}
             <div class="sw-wrap"><div class="sw" data-c="rose" onclick="setColor('#C4897A',this)"></div><div class="sw-lbl" data-i18n="swRose">Rose</div></div>
             <div class="sw-wrap"><div class="sw" data-c="slate" onclick="setColor('#7A95AF',this)"></div><div class="sw-lbl" data-i18n="swSlate">Slate</div></div>
             <div class="sw-wrap"><div class="sw" data-c="mauve" onclick="setColor('#A67B8A',this)"></div><div class="sw-lbl" data-i18n="swMauve">Mauve</div></div>
+            <div class="sw-wrap"><div class="sw" data-c="midnight" onclick="setColor('#2D4163',this)"></div><div class="sw-lbl" data-i18n="swMidnight">Midnight</div></div>
           </div>
         </div>
         <div class="f" style="margin-top:10px"><label data-i18n="lblVersion">Version</label>
@@ -514,6 +516,7 @@ const TRANSLATIONS = {
     swRose:'Rose',
     swSlate:'Slate',
     swMauve:'Mauve',
+    swMidnight:'Midnight',
     secMargins:'Margins (px)',
     lblMgTop:'Top',
     lblMgBottom:'Bottom',
@@ -584,6 +587,7 @@ const TRANSLATIONS = {
     swRose:'Rose',
     swSlate:'Schiefer',
     swMauve:'Malve',
+    swMidnight:'Mitternacht',
     secMargins:'Abstände (px)',
     lblMgTop:'Oben',
     lblMgBottom:'Unten',
@@ -654,6 +658,7 @@ const TRANSLATIONS = {
     swRose:'Rose',
     swSlate:'Ardoise',
     swMauve:'Mauve',
+    swMidnight:'Minuit',
     secMargins:'Marges (px)',
     lblMgTop:'Haut',
     lblMgBottom:'Bas',
@@ -724,6 +729,7 @@ const TRANSLATIONS = {
     swRose:'Roze',
     swSlate:'Leisteen',
     swMauve:'Mauve',
+    swMidnight:'Middernacht',
     secMargins:'Marges (px)',
     lblMgTop:'Boven',
     lblMgBottom:'Onder',
@@ -794,6 +800,7 @@ const TRANSLATIONS = {
     swRose:'โรส',
     swSlate:'สเลท',
     swMauve:'มอฟ',
+    swMidnight:'มิดไนท์',
     secMargins:'ระยะขอบ (px)',
     lblMgTop:'บน',
     lblMgBottom:'ล่าง',
@@ -864,6 +871,7 @@ const TRANSLATIONS = {
     swRose:'Rosa',
     swSlate:'Pizarra',
     swMauve:'Malva',
+    swMidnight:'Medianoche',
     secMargins:'Márgenes (px)',
     lblMgTop:'Superior',
     lblMgBottom:'Inferior',
@@ -1848,7 +1856,7 @@ function rp(){
   _rpRafId = requestAnimationFrame(()=>{
     _rpRafId = null;
     const paper = document.getElementById('prev-resume1');
-    if(paper && prevMode==='resume1') insertPageBreaks(paper);
+    if(paper && prevMode==='resume1' && !window.__PRINT_MODE__) insertPageBreaks(paper);
   });
 }
 
@@ -2101,6 +2109,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // ── PLAYWRIGHT / PRINT MODE ──
   const _p=new URLSearchParams(location.search);
   if(_p.get('print')==='1'){
+    window.__PRINT_MODE__=true;
     if(window.__ORDER__){
       const o=window.__ORDER__;
       const _set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=String(v);};
@@ -2178,6 +2187,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(paper) insertPageBreaks(paper);
       // After split, apply box-shadow:none to all generated page divs
       document.querySelectorAll('#resume-scroll-wrap .paper').forEach(p=>{
+        p.classList.add('print-active');
         p.style.boxShadow='none';
         p.style.maxWidth='none';
         p.style.width='100%';
