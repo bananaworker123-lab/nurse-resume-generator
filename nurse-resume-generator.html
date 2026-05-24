@@ -1491,16 +1491,19 @@ function _pbSplitLeft(pages, pi, kids, splitAt, lastSec, langClass){
     else nextPg.appendChild(nextRL);
   }
 
-  // Add "(Cont.)" header only when split lands inside a section (not at a header)
+  // Build a fragment: optional "(Cont.)" header + overflow items.
+  // Insert the whole block BEFORE any existing sidebar content on the next page
+  // so that section order is preserved (e.g. Education before Skills).
+  const frag = document.createDocumentFragment();
   if(lastSec && !kids[splitAt].classList.contains('r-sec')){
     const ch = document.createElement('div');
     ch.className = 'r-sec';
     ch.style.cssText = `color:${accent};border-color:${accent};font-size:${FS.sec}px;margin-top:0;`;
     ch.textContent = lastSec + ' (Cont.)';
-    nextRL.insertBefore(ch, nextRL.firstChild || null);
+    frag.appendChild(ch);
   }
-
-  kids.slice(splitAt).forEach(el => nextRL.appendChild(el));
+  kids.slice(splitAt).forEach(el => frag.appendChild(el));
+  nextRL.insertBefore(frag, nextRL.firstChild || null);
 }
 
 // ── COLLECT DATA ──
