@@ -1326,95 +1326,176 @@ function rm(id){const el=document.getElementById(id);if(el)el.remove();rp();}
 
 
 // ── SMART PAGE BREAKS IN PREVIEW ──
-// Split rendered resume into separate .paper divs — one per page.
-// Each page div is a visual card like a real sheet of paper.
-// Also injects padding-top spacer at top of pages 2+ for PDF margin.
+// Iteratively splits both .r-right (work entries) and .r-left (sidebar) across
+// pages until every page fits within pageH (828px = US Letter at 640px scale).
+// Sidebar overflow continues on the next page with a "(Cont.)" section label.
 function insertPageBreaks(paper){
   if(!paper) return;
+  const pageH = getPageH();
+  const container = paper.parentNode;
+  const langClass = paper.classList.contains('lang-th') ? ' lang-th' : '';
 
-  const pageH = getPageH ? getPageH() : Math.round((paper.clientWidth||640)*11/8.5);
-  const container = paper.parentNode; // resume-scroll-wrap
+  // Clean up previous splits
+  container.querySelectorAll('.paper').forEach((p,i)=>{ if(i>0) p.remove(); });
+  paper.querySelectorAll('.page-break-marker,.page-top-spacer').forEach(m=>m.remove());
 
-  // Remove all extra page divs we created previously (keep only the first paper)
-  const allPapers = container.querySelectorAll('.paper');
-  allPapers.forEach((p,i)=>{ if(i>0) p.remove(); });
+  // Run up to 40 split passes — each pass fixes exactly one overflow.
+  // Stops early when no page overflows.
+  for(let iter=0; iter<40; iter++){
+    const pages = Array.from(container.querySelectorAll('.paper'));
+    let didSplit = false;
 
-  // Remove old page-break markers inside the paper
-  paper.querySelectorAll('.page-break-marker, .page-top-spacer').forEach(m=>m.remove());
+    for(let pi=0; pi<pages.length; pi++){
+      const pg = pages[pi];
+      const pgT = pg.getBoundingClientRect().top;
 
-  // Walk breakable elements to find where page boundaries fall
-  const els = paper.querySelectorAll('.r-job, .r-cert, .r-edu-item, .r-sec');
-  if(!els.length) return;
+      // ── Right column overflow ──────────────────────────────────────────────
+      const rRight = pg.querySelector('.r-right');
+      if(rRight){
+        const rrT = rRight.getBoundingClientRect().top - pgT;
+        const rrAvail = pageH - rrT; // space from r-right top to page bottom
+        if(rrT + rRight.scrollHeight > pageH + 2){ // column actually overflows the page
+          for(const el of rRight.querySelectorAll('.r-job,.r-cert,.r-edu-item,.r-sec')){
+            const r = el.getBoundingClientRect();
+            const elTop = r.top - pgT;
+            const elBot = r.bottom - pgT;
+            if(elTop >= pageH - 2 || elBot > rrAvail){
+              _pbSplitRight(pg, el, langClass);
+              didSplit = true; break;
+            }
+          }
+        }
+        if(didSplit) break;
+      }
 
-  const paperRect = paper.getBoundingClientRect();
-  const paperTop = paperRect.top + window.scrollY;
+      // ── Left column (sidebar) overflow ────────────────────────────────────
+      const rl = pg.querySelector('.r-left');
+      if(rl && rl.children.length){
+        const rlTop = rl.getBoundingClientRect().top - pgT;
+        const avail = pageH - rlTop;
+        if(rl.scrollHeight > avail + 2){
+          const kids = Array.from(rl.children);
+          let splitIdx = -1;
+          for(let i=0; i<kids.length; i++){
+            if(kids[i].getBoundingClientRect().bottom - pgT > pageH - 2){
+              splitIdx = i; break;
+            }
+          }
+          // Fallback: bottom padding causes overflow but no child exceeds page boundary
+          if(splitIdx === -1) splitIdx = kids.length - 1;
+          if(splitIdx >= 0){
+            let lastSec = '';
+            for(let j=splitIdx-1;j>=0;j--){
+              if(kids[j].classList.contains('r-sec')){
+                lastSec = kids[j].textContent.replace(/\s*\(Cont\.\)\s*$/,'').trim();
+                break;
+              }
+            }
+            _pbSplitLeft(pages, pi, kids, splitIdx, lastSec, langClass);
+            didSplit = true;
+          }
+          if(didSplit) break;
+        }
+      }
 
-  // Collect all page-break points: elements that start on a new page
-  const breakBefore = []; // elements that should start a new page
-  let currentPage = 1;
-
-  els.forEach(el=>{
-    const elTop = el.getBoundingClientRect().top + window.scrollY - paperTop;
-    const pageEnd = currentPage * pageH;
-    if(elTop >= pageEnd - 2){ // -2px tolerance
-      currentPage = Math.ceil((elTop+1) / pageH);
-      breakBefore.push(el);
+      if(didSplit) break;
     }
-  });
+    if(!didSplit) break; // all pages fit — done
+  }
+}
 
-  if(!breakBefore.length) return; // fits on one page, nothing to do
+// Create a new blank .paper page with a top-margin spacer
+function _pbNewPage(fromPg, langClass){
+  const np = document.createElement('div');
+  np.className = 'paper' + langClass;
+  np.style.cssText = fromPg.style.cssText;
+  const sp = document.createElement('div');
+  sp.className = 'page-top-spacer';
+  sp.style.cssText = `height:${MG.top}px;display:block;`;
+  np.appendChild(sp);
+  return np;
+}
 
-  // Build extra page divs for pages 2+
-  breakBefore.forEach((breakEl, idx)=>{
-    // Create a new paper div for this page
-    const newPage = document.createElement('div');
-    newPage.className = 'paper' + (paper.classList.contains('lang-th')?' lang-th':'');
-    newPage.style.cssText = paper.style.cssText;
-
-    // Add top-margin spacer inside the new page div (matches MG.top for PDF consistency)
-    const topSpacer = document.createElement('div');
-    topSpacer.className = 'page-top-spacer';
-    topSpacer.style.cssText = `height:${MG.top}px;display:block;`;
-    newPage.appendChild(topSpacer);
-
-    // Move all elements from breakEl onwards into the new page
-    // We need to move them into the same parent structure (.r-right or .r-left)
-    // Strategy: clone the parent wrappers (.rb, .r-right/.r-left) and move elements
-    const rb = breakEl.closest('.rb');
-    const rRight = breakEl.closest('.r-right');
-    const rLeft = paper.querySelector('.r-left');
-
-    if(rb && rRight){
-      // Clone the full .rb grid structure (empty)
-      const newRb = rb.cloneNode(false); // shallow — no children
-      const newRLeft = rLeft ? rLeft.cloneNode(false) : null;
-      const newRRight = rRight.cloneNode(false);
-
-      // Collect elements to move: breakEl and all following siblings in .r-right
-      const toMove = [];
-      let sibling = breakEl;
-      while(sibling){ toMove.push(sibling); sibling = sibling.nextElementSibling; }
-      toMove.forEach(el=>newRRight.appendChild(el));
-
-      if(newRLeft) newRb.appendChild(newRLeft);
-      newRb.appendChild(newRRight);
-      newPage.appendChild(newRb);
-    } else {
-      // Fallback: just move all following siblings
-      const toMove = [];
-      let sibling = breakEl;
-      while(sibling){ toMove.push(sibling); sibling = sibling.nextElementSibling; }
-      toMove.forEach(el=>newPage.appendChild(el));
-    }
-
-    // Insert gap marker then new page after current paper (correct order for preview)
+// Insert newEl (with optional gap marker) immediately after refEl in the DOM
+function _pbInsertAfter(refEl, newEl, withGap){
+  if(withGap){
     const gap = document.createElement('div');
     gap.className = 'page-gap-marker';
     gap.setAttribute('aria-hidden','true');
-    container.appendChild(gap);
-    container.appendChild(newPage);
-    paper = newPage; // next page break splits from the new page
-  });
+    refEl.after(gap);
+    gap.after(newEl);
+  } else {
+    refEl.after(newEl);
+  }
+}
+
+// Split right column: move breakEl and its following siblings to a new page
+function _pbSplitRight(pg, breakEl, langClass){
+  const rb     = breakEl.closest('.rb');
+  const rRight = breakEl.closest('.r-right');
+  const rLeft  = pg.querySelector('.r-left');
+  const np     = _pbNewPage(pg, langClass);
+
+  if(rb && rRight){
+    const newRb  = rb.cloneNode(false);
+    const newRR  = rRight.cloneNode(false);
+    const newRL  = rLeft ? rLeft.cloneNode(false) : null; // empty sidebar; filled by sidebar pass
+    const toMove = [];
+    let s = breakEl; while(s){ toMove.push(s); s = s.nextElementSibling; }
+    toMove.forEach(e => newRR.appendChild(e));
+    if(newRL) newRb.appendChild(newRL);
+    newRb.appendChild(newRR);
+    np.appendChild(newRb);
+  } else {
+    const toMove = [];
+    let s = breakEl; while(s){ toMove.push(s); s = s.nextElementSibling; }
+    toMove.forEach(e => np.appendChild(e));
+  }
+  _pbInsertAfter(pg, np, true);
+}
+
+// Split left column: move kids[splitAt..] to next page's sidebar.
+// Adds "(Cont.)" label if the split falls mid-section.
+function _pbSplitLeft(pages, pi, kids, splitAt, lastSec, langClass){
+  const pg = pages[pi];
+
+  // Ensure next page exists; create one if needed
+  let nextPg = pages[pi+1];
+  if(!nextPg){
+    nextPg = _pbNewPage(pg, langClass);
+    const rb = pg.querySelector('.rb');
+    if(rb){
+      const newRb = rb.cloneNode(false);
+      const rl = pg.querySelector('.r-left');
+      const rr = pg.querySelector('.r-right');
+      if(rl) newRb.appendChild(rl.cloneNode(false));
+      if(rr) newRb.appendChild(rr.cloneNode(false));
+      nextPg.appendChild(newRb);
+    }
+    _pbInsertAfter(pg, nextPg, true);
+  }
+
+  // Ensure next page has an r-left
+  let nextRL = nextPg.querySelector('.r-left');
+  if(!nextRL){
+    const origRL = pages[0] ? pages[0].querySelector('.r-left') : null;
+    nextRL = origRL ? origRL.cloneNode(false) : document.createElement('div');
+    nextRL.className = nextRL.className || 'r-left';
+    const nextRb = nextPg.querySelector('.rb');
+    if(nextRb) nextRb.insertBefore(nextRL, nextRb.firstChild);
+    else nextPg.appendChild(nextRL);
+  }
+
+  // Add "(Cont.)" header only when split lands inside a section (not at a header)
+  if(lastSec && !kids[splitAt].classList.contains('r-sec')){
+    const ch = document.createElement('div');
+    ch.className = 'r-sec';
+    ch.style.cssText = `color:${accent};border-color:${accent};font-size:${FS.sec}px;margin-top:0;`;
+    ch.textContent = lastSec + ' (Cont.)';
+    nextRL.insertBefore(ch, nextRL.firstChild || null);
+  }
+
+  kids.slice(splitAt).forEach(el => nextRL.appendChild(el));
 }
 
 // ── COLLECT DATA ──
