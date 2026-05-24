@@ -8,70 +8,86 @@ const path = require('path');
   await page.goto(filePath, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
 
-  // Click "Add Education" 3 times for total 5 edu items
-  for (let i = 0; i < 3; i++) {
-    const btn = await page.$('button[onclick*="addEdu"], button[onclick*="Edu"]') ||
-                await page.$$('button').then(bs => bs.find(async b => (await b.textContent()).includes('Education')));
-    // Find by text
-    await page.evaluate(() => {
-      const btns = Array.from(document.querySelectorAll('button'));
-      const btn = btns.find(b => b.textContent.includes('Education') && b.textContent.includes('+'));
-      if (btn) btn.click();
-    });
-    await page.waitForTimeout(400);
-  }
-
-  // Fill in extra edu fields with content
+  // Add edu items 3 & 4
   await page.evaluate(() => {
-    const fill = (id, val) => { const el = document.getElementById(id); if(el){ el.value = val; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); } };
-    // edu 3
-    fill('eD3', 'Associate Degree in Nursing (ADN)');
-    fill('eS3', 'Austin Community College');
-    fill('eY3', '2015');
-    // edu 4
-    fill('eD4', 'Certified Nurse Anesthetist Program');
-    fill('eS4', 'Texas A&M University Health Science Center');
-    fill('eY4', '2017');
-    // edu 5
-    fill('eD5', 'Post-Graduate Certificate in Critical Care');
-    fill('eS5', 'University of Houston College of Nursing');
-    fill('eY5', '2019');
+    const addB = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('+') && b.textContent.includes('Edu'));
+    if (addB) { addB.click(); addB.click(); }
   });
+  await page.waitForTimeout(500);
 
-  // Increase edu font size via Design tab to force overflow
   await page.evaluate(() => {
-    // bump edu item font size directly if FS is accessible
-    if (window.FS) {
-      window.FS.edu = 14; // bigger than default
+    const fill = (id, v) => { const e = document.getElementById(id); if(e){e.value=v; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change'));} };
+    fill('eD3','Associate Degree in Nursing (ADN)');
+    fill('eS3','Austin Community College of Nursing');
+    fill('eY3','2015');
+    fill('eD4','Post-Graduate Certificate in Critical Care Nursing');
+    fill('eS4','University of Houston College of Nursing and Health Sciences');
+    fill('eY4','2019');
+  });
+  await page.waitForTimeout(300);
+
+  // Go to Design tab and bump edu font size
+  await page.evaluate(() => {
+    const tab = Array.from(document.querySelectorAll('[data-tab]')).find(t => t.dataset.tab === 'design' || t.textContent.includes('DESIGN'));
+    if (tab) tab.click();
+  });
+  await page.waitForTimeout(300);
+
+  // Find edu font size slider/input and increase it
+  await page.evaluate(() => {
+    // Try to find edu font input
+    const inputs = Array.from(document.querySelectorAll('input[type="range"], input[type="number"]'));
+    // Look for edu-related size control
+    const eduInput = inputs.find(i => i.id && i.id.toLowerCase().includes('edu') && i.id.toLowerCase().includes('size'));
+    if (eduInput) {
+      eduInput.value = parseInt(eduInput.max || 16);
+      eduInput.dispatchEvent(new Event('input'));
+    } else {
+      // Directly set FS.edu if accessible
+      if (window.FS) {
+        window.FS.edu = 14;
+        const ev = new Event('input');
+        const el = document.querySelector('input');
+        if (el) el.dispatchEvent(ev);
+      }
     }
-    // Trigger re-render
-    const ev = new Event('input');
-    const any = document.querySelector('input');
-    if (any) any.dispatchEvent(ev);
   });
-
   await page.waitForTimeout(1500);
 
+  // Scroll to show page 1 bottom / page 2 top
+  await page.evaluate(() => {
+    const panel = document.querySelector('.preview-panel');
+    if (panel) panel.scrollTop = 700;
+  });
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: 'preview-p1-bottom.png' });
+
+  // Scroll to show page 2
+  await page.evaluate(() => {
+    const panel = document.querySelector('.preview-panel');
+    if (panel) panel.scrollTop = 900;
+  });
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: 'preview-p2.png' });
+
+  // Log sidebar data
   const info = await page.evaluate(() => {
     const papers = Array.from(document.querySelectorAll('#resume-scroll-wrap .paper'));
     return papers.map((p, i) => {
       const rl = p.querySelector('.r-left');
       return {
-        page: i + 1,
+        page: i+1,
         scrollH: p.scrollHeight,
         rlKids: rl ? Array.from(rl.children).map(k => ({
           cls: k.className.split(' ')[0],
-          text: k.textContent.trim().slice(0, 45),
-        })) : [],
+          text: k.textContent.trim().slice(0,50)
+        })) : []
       };
     });
   });
-
-  console.log('Total pages:', info.length);
   info.forEach(h => {
-    const ok = h.scrollH <= 828 ? '✓' : `✗ (${h.scrollH}px)`;
-    console.log(`\n  p${h.page} [${ok}] | sidebar (${h.rlKids.length}):`);
-    h.rlKids.forEach(k => console.log(`    ${k.cls}: "${k.text}"`));
+    console.log(`\np${h.page} [${h.scrollH<=828?'✓':'✗ '+h.scrollH}]:`);
+    h.rlKids.forEach(k => console.log(`  ${k.cls}: "${k.text}"`));
   });
 
   await browser.close();

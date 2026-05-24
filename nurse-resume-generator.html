@@ -1491,11 +1491,19 @@ function _pbSplitLeft(pages, pi, kids, splitAt, lastSec, langClass){
     else nextPg.appendChild(nextRL);
   }
 
-  // Build a fragment: optional "(Cont.)" header + overflow items.
-  // Insert the whole block BEFORE any existing sidebar content on the next page
-  // so that section order is preserved (e.g. Education before Skills).
+  // Check if nextRL already opens with a (Cont.) header for the same section.
+  // This happens when the same section needed multiple split passes
+  // (e.g. Edu3 moved in one pass, Edu4 in the next).
+  // In that case: skip adding a duplicate header, and insert items RIGHT AFTER
+  // the existing (Cont.) header so the section stays together and before Skills.
+  const existingCont = nextRL.firstElementChild;
+  const isSameCont = lastSec &&
+    existingCont &&
+    existingCont.classList.contains('r-sec') &&
+    existingCont.textContent.replace(/\s*\(Cont\.\)\s*$/, '').trim() === lastSec;
+
   const frag = document.createDocumentFragment();
-  if(lastSec && !kids[splitAt].classList.contains('r-sec')){
+  if(!isSameCont && lastSec && !kids[splitAt].classList.contains('r-sec')){
     const ch = document.createElement('div');
     ch.className = 'r-sec';
     ch.style.cssText = `color:${accent};border-color:${accent};font-size:${FS.sec}px;margin-top:0;`;
@@ -1503,7 +1511,11 @@ function _pbSplitLeft(pages, pi, kids, splitAt, lastSec, langClass){
     frag.appendChild(ch);
   }
   kids.slice(splitAt).forEach(el => frag.appendChild(el));
-  nextRL.insertBefore(frag, nextRL.firstChild || null);
+  // Insert the block:
+  // • isSameCont → after the existing (Cont.) header, before its items
+  // • otherwise  → before all existing sidebar content
+  const anchor = isSameCont ? existingCont.nextSibling : (nextRL.firstChild || null);
+  nextRL.insertBefore(frag, anchor);
 }
 
 // ── COLLECT DATA ──
