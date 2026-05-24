@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nurse Resume Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root { --accent:#C9A87C; --dark:#1A1A1A; --mid:#555; --light:#999; --bg:#F8F7F5; --white:#fff; --border:#E5E0D8; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;font-size:13px;}
+
+/* ── APP SHELL ── */
+header{background:var(--white);border-bottom:1px solid var(--border);padding:14px 32px 14px 32px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;justify-content:space-between;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;letter-spacing:1px;}
+.logo-sub{font-size:9px;letter-spacing:3px;color:var(--light);text-transform:uppercase;}
+.hdr-ekg{width:36px;height:22px;}
+.app{display:grid;grid-template-columns:460px 1fr;height:calc(100vh - 53px);}
+
+/* ── TABS ── */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);background:var(--white);}
+.tab{flex:1;padding:10px 6px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border:none;background:none;cursor:pointer;color:var(--light);border-bottom:2px solid transparent;transition:all .2s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* ── FORM PANEL ── */
+.form-panel{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.form-tabs{display:flex;border-bottom:1px solid var(--border);}
+.form-tab{flex:1;padding:9px 4px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border:none;background:none;cursor:pointer;color:var(--light);border-bottom:2px solid transparent;transition:all .2s;}
+.form-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.form-body{flex:1;overflow-y:auto;padding:0;}
+.form-sec{padding:20px 28px;border-bottom:1px solid var(--border);}
+.sec-label{font-size:8.5px;letter-spacing:3px;font-weight:700;text-transform:uppercase;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.f{margin-bottom:10px;}
+.f label{display:block;font-size:9px;letter-spacing:1px;font-weight:600;color:var(--mid);text-transform:uppercase;margin-bottom:4px;}
+.f input,.f select,.f textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:3px;font-family:'Lato',sans-serif;font-size:12px;color:var(--dark);background:var(--bg);outline:none;transition:border-color .15s;}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--accent);background:var(--white);}
+.f textarea{resize:vertical;min-height:60px;line-height:1.5;}
+/* Font size control */
+.fs-control{display:flex;align-items:center;gap:6px;}
+.fs-control input[type=range]{flex:1;accent-color:var(--accent);}
+.fs-val{font-size:10px;color:var(--mid);min-width:28px;text-align:right;}
+/* Color swatches */
+.swatches{display:flex;gap:8px;flex-wrap:wrap;}
+.sw-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.sw{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .2s;}
+.sw.active{border-color:var(--dark);transform:scale(1.1);}
+.sw[data-c="beige"]{background:#C9A87C;}
+.sw[data-c="sage"]{background:#8FAF8F;}
+.sw[data-c="rose"]{background:#C4897A;}
+.sw[data-c="slate"]{background:#7A95AF;}
+.sw[data-c="mauve"]{background:#A67B8A;}
+.sw-lbl{font-size:8px;letter-spacing:1px;color:var(--mid);text-transform:uppercase;}
+/* Version tabs */
+.vtabs{display:flex;border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+.vtab{flex:1;padding:7px 8px;font-size:9px;font-family:'Montserrat',sans-serif;font-weight:600;cursor:pointer;border:none;background:var(--bg);color:var(--mid);letter-spacing:1px;text-transform:uppercase;transition:all .2s;}
+.vtab.active{background:var(--accent);color:var(--white);}
+/* Entry blocks */
+.entry{border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:8px;background:var(--bg);position:relative;}
+.entry .rm{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--light);cursor:pointer;font-size:15px;line-height:1;}
+.entry .rm:hover{color:#C4897A;}
+.add-btn{width:100%;padding:8px;border:1px dashed var(--border);background:none;border-radius:3px;font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);cursor:pointer;transition:all .2s;}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* Bottom actions */
+.form-footer{padding:16px 28px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+/* Custom language dropdown — avoids native select automation issues (NEW-BUG-02) */
+#langDropWrap{position:relative;display:flex;align-items:center;gap:6px;}
+#langDropBtn{font-family:'Montserrat',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:1px;color:var(--mid);background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 22px 5px 8px;cursor:pointer;outline:none;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:border-color .15s;}
+#langDropBtn:hover{border-color:var(--accent);}
+#langDropBtn svg{flex-shrink:0;}
+#langDropMenu{display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--white);border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:300;min-width:140px;overflow:hidden;}
+#langDropMenu.open{display:block;}
+.lang-opt{display:block;width:100%;padding:7px 14px;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:600;letter-spacing:1px;color:var(--mid);background:none;border:none;text-align:left;cursor:pointer;transition:background .1s;}
+.lang-opt:hover{background:var(--bg);}
+.lang-opt.active{color:var(--accent);}
+hr.lang-div{margin:2px 0;border:none;border-top:1px solid var(--border);}
+.gen-btn{width:100%;padding:13px;background:var(--accent);color:var(--white);border:none;border-radius:3px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.gen-btn:hover{opacity:.88;transform:translateY(-1px);}
+.gen-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.gen-status{font-size:10px;color:var(--mid);text-align:center;min-height:16px;}
+
+/* ── PREVIEW PANEL ── */
+.preview-panel{background:#DDD9D1;overflow-y:auto;display:flex;flex-direction:column;}
+.prev-tabs{display:flex;background:#CBC6BE;border-bottom:1px solid #B8B3AB;}
+.prev-tab{flex:1;padding:9px 4px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border:none;background:none;cursor:pointer;color:#888;border-bottom:2px solid transparent;transition:all .2s;}
+.prev-tab.active{color:#3A3530;border-bottom-color:#3A3530;}
+.prev-body{flex:1;padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:20px;}
+
+/* ════ RESUME PAPER BASE ════ */
+.paper{background:var(--white);width:100%;max-width:640px;box-shadow:0 6px 40px rgba(0,0,0,.18);font-family:'Lato',sans-serif;color:#1A1A1A;line-height:1.5;}
+/* Thai language: use Sarabun which has full Thai glyph support */
+:lang(th) .paper, .paper.lang-th { font-family:'Sarabun','Lato',sans-serif; }
+:lang(th) .r-sec, .lang-th .r-sec,
+:lang(th) .r-sg-lbl, .lang-th .r-sg-lbl { font-family:'Sarabun','Montserrat',sans-serif; letter-spacing:0.5px; }
+/* Page gap between paper cards in preview (visual separator, NOT printed) */
+.page-gap-marker{width:100%;max-width:640px;height:20px;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-size:7px;letter-spacing:2px;color:#BBB;font-weight:600;text-transform:uppercase;}
+.page-gap-marker::before{content:'─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─';}
+/* Spacer at top of pages 2+ in preview and PDF */
+.page-top-spacer{display:block;}
+/* Print: hide gap markers, each .paper prints as its own page */
+@media print{
+  .page-gap-marker{display:none;}
+  .paper{page-break-after:always;break-after:page;}
+  .paper:last-child{page-break-after:avoid;break-after:avoid;}
+}
+
+/* ── RESUME: Header ── */
+.rh{padding:28px 32px 0 32px;}
+.rh-name1{font-family:'Montserrat',sans-serif;font-weight:700;color:#1A1A1A;letter-spacing:3px;text-transform:uppercase;line-height:1;}
+.rh-name2{font-family:'Montserrat',sans-serif;font-weight:300;letter-spacing:3px;text-transform:uppercase;line-height:1;margin-top:3px;}
+.rh-ekg-wrap{position:relative;height:26px;margin-top:2px;}
+.rh-ekg-wrap svg{position:absolute;right:0;top:0;height:26px;width:160px;}
+.rh-title{font-family:'Montserrat',sans-serif;font-weight:400;letter-spacing:5px;text-transform:uppercase;color:#888;margin-top:8px;}
+.rh-divider{height:1px;margin-top:10px;margin-bottom:0;}
+
+/* ── RESUME: Two columns ── */
+.rb{display:grid;grid-template-columns:220px 1fr;}
+.r-left{padding:22px 20px 22px 32px;border-right:1px solid #EBEBEB;}
+.r-right{padding:22px 32px 22px 24px;}
+.r-sec{font-family:'Montserrat',sans-serif;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding-bottom:4px;border-bottom:1px solid;margin-bottom:10px;margin-top:18px;}
+.r-sec:first-child{margin-top:0;}
+.r-ci{display:flex;align-items:flex-start;gap:7px;margin-bottom:6px;color:#444;}
+.r-ci svg{flex-shrink:0;margin-top:1px;opacity:.65;}
+.r-cert,.r-edu-item{margin-bottom:10px;}
+.r-cert-name,.r-edu-deg{font-weight:700;color:#1A1A1A;}
+.r-cert-det,.r-edu-sch,.r-edu-yr{color:#666;}
+.r-sg{margin-bottom:10px;}
+.r-sg-lbl{font-family:'Montserrat',sans-serif;font-weight:600;letter-spacing:0.5px;text-transform:none;color:#AAA;margin-bottom:5px;font-size:9px;}
+.r-sk{color:#444;margin-bottom:3px;}
+.r-sum{color:#333;}
+.r-job{margin-bottom:16px;page-break-inside:avoid;break-inside:avoid;}
+.r-job-hd{display:flex;justify-content:space-between;align-items:baseline;}
+.r-job-title{font-weight:700;color:#1A1A1A;text-transform:uppercase;letter-spacing:.5px;}
+.r-job-date{color:#999;white-space:nowrap;margin-left:8px;}
+.r-job-place{color:#555;margin-top:1px;}
+.r-job-ul{margin-top:6px;padding-left:14px;}
+.r-job-ul li{color:#333;margin-bottom:4px;line-height:1.55;}
+
+/* ── COVER LETTER ── */
+.cl-body{display:grid;grid-template-columns:200px 1fr;}
+.cl-left{padding:22px 16px 22px 32px;border-right:1px solid #EBEBEB;}
+.cl-right{padding:22px 32px 28px 24px;}
+.cl-to{margin-bottom:20px;}
+.cl-to p{line-height:1.7;color:#333;}
+.cl-para{color:#333;line-height:1.8;margin-bottom:14px;}
+.cl-sig-script{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#1A1A1A;margin-top:20px;margin-bottom:4px;}
+.cl-sig-print{color:#555;}
+
+/* ── REFERENCES ── */
+.ref-body{padding:22px 32px;}
+.ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 32px;margin-top:4px;}
+.ref-item{margin-bottom:4px;}
+.ref-name{font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1A1A1A;}
+.ref-pos{color:#555;}
+.ref-detail{color:#666;}
+
+/* ── OUTPUT BOX ── */
+.output-box{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:20px;width:100%;max-width:640px;}
+.output-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:14px;}
+.file-list{font-family:monospace;font-size:11px;color:#333;background:var(--bg);padding:12px 14px;border-radius:3px;border:1px solid var(--border);line-height:2;}
+.output-note{font-size:11px;color:var(--mid);margin-top:12px;line-height:1.6;}
+
+/* Loading */
+.loading{position:fixed;inset:0;background:rgba(248,247,245,.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px;}
+.loading.on{display:flex;}
+.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-txt{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);}
+
+/* ── PDF / PRINT MODE (Playwright + browser print) ── */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  header,.form-panel,.prev-tabs,.loading{display:none!important;}
+  .app{display:block!important;height:auto!important;}
+  .preview-panel{background:white!important;overflow:visible!important;}
+  .prev-body{padding:0!important;align-items:flex-start!important;}
+  .paper{max-width:none!important;width:100%!important;box-shadow:none!important;display:none!important;margin:0!important;}
+  .paper.print-active{display:block!important;}
+}
+/* Off-screen render container — used by html2pdf */
+.pdf-wrap{position:fixed;left:-9999px;top:0;background:white;z-index:-1;}
+.pdf-page{background:white;font-family:'Lato',sans-serif;color:#1A1A1A;line-height:1.5;box-shadow:none!important;}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-header .sec-label{margin-bottom:0;}
+.sec-header .sec-label::after{content:'';flex:1;height:1px;background:var(--border);margin-left:8px;}
+.clear-btn{font-size:8px;letter-spacing:1px;font-weight:600;text-transform:uppercase;color:var(--light);background:none;border:1px solid var(--border);border-radius:3px;padding:3px 8px;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:'Montserrat',sans-serif;}
+.clear-btn:hover{color:#C4897A;border-color:#C4897A;}
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="hdr-ekg" viewBox="0 0 72 36" fill="none">
+    <polyline points="0,18 12,18 18,6 22,30 28,2 34,34 40,18 50,18 55,12 60,24 65,18 72,18"
+      stroke="#C9A87C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>
+  <div><div class="logo">NurseResume</div><div class="logo-sub">Template Generator</div></div>
+  <div id="langDropWrap">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="opacity:.45;flex-shrink:0"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 1c-1.5 2-2.5 4.3-2.5 7s1 5 2.5 7M8 1c1.5 2 2.5 4.3 2.5 7s-1 5-2.5 7M1 8h14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    <button id="langDropBtn" onclick="toggleLangMenu(event)">
+      <span id="langLabel">English (EN)</span>
+      <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div id="langDropMenu">
+      <button class="lang-opt active" data-lang="en" onclick="pickLang('en',this)">English (EN)</button>
+      <hr class="lang-div">
+      <button class="lang-opt" data-lang="de" onclick="pickLang('de',this)">Deutsch (DE)</button>
+      <button class="lang-opt" data-lang="es" onclick="pickLang('es',this)">Español (ES)</button>
+      <button class="lang-opt" data-lang="fr" onclick="pickLang('fr',this)">Français (FR)</button>
+      <button class="lang-opt" data-lang="nl" onclick="pickLang('nl',this)">Nederlands (NL)</button>
+      <button class="lang-opt" data-lang="th" onclick="pickLang('th',this)">ภาษาไทย (TH)</button>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+
+<!-- ═══ FORM PANEL ═══ -->
+<div class="form-panel">
+  <div class="form-tabs">
+    <button class="form-tab active" onclick="showFormTab('info',this)" data-tab="tabInfo">Info</button>
+    <button class="form-tab" onclick="showFormTab('experience',this)">Experience</button>
+    <button class="form-tab" onclick="showFormTab('design',this)">Design</button>
+    <button class="form-tab" onclick="showFormTab('delivery',this)">Generate</button>
+  </div>
+  <div class="form-body" id="formBody">
+
+    <!-- TAB: INFO -->
+    <div id="ftab-info">
+      <div class="form-sec">
+        <div class="sec-header"><div class="sec-label">Personal</div><button class="clear-btn" onclick="clearPersonal()">Clear all</button></div>
+        <div class="row2">
+          <div class="f"><label data-i18n="lblFirst">First Name *</label><input id="fName" placeholder="e.g. Marina" oninput="rp()"></div>
+          <div class="f"><label data-i18n="lblLast">Last Name *</label><input id="lName" placeholder="e.g. Thompson" oninput="rp()"></div>
+        </div>
+        <div class="row2">
+          <div class="f"><label data-i18n="lblCred">Credentials</label><input id="cred" placeholder="RN" oninput="rp()"></div>
+          <div class="f"><label data-i18n="lblTitle">Job Title</label><input id="jobTitle" placeholder="Registered Nurse" oninput="rp()"></div>
+        </div>
+        <div class="row2">
+          <div class="f"><label data-i18n="lblPhone">Phone</label><input id="phone" placeholder="e.g. (555) 000-1234" oninput="rp()"></div>
+          <div class="f"><label data-i18n="lblEmail">Email</label><input id="email" placeholder="e.g. nurse@email.com" oninput="rp()"></div>
+        </div>
+        <div class="row2">
+          <div class="f"><label data-i18n="lblLoc">City, State</label><input id="loc" placeholder="e.g. Austin, TX" oninput="rp()"></div>
+          <div class="f"><label data-i18n="lblLI">LinkedIn</label><input id="linkedin" placeholder="e.g. linkedin.com/in/yourname" oninput="rp()"></div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="sec-label" data-i18n="secSummary">Profile Summary</div>
+        <div class="f"><textarea id="summary" rows="4" placeholder="A compassionate RN with 5+ years of ICU experience…" oninput="rp()"></textarea></div>
+      </div>
+      <div class="form-sec">
+        <div class="sec-header"><div class="sec-label" data-i18n="secCerts">Certifications & Licenses</div><button class="clear-btn" onclick="clearSection('certsWrap','certN')">Clear all</button></div>
+        <div id="certsWrap"></div>
+        <button id="addCertBtn" class="add-btn" onclick="addCert()">+ Add Certification</button>
+      </div>
+      <div class="form-sec">
+        <div class="sec-header"><div class="sec-label" data-i18n="secEdu">Education</div><button class="clear-btn" onclick="clearSection('eduWrap','eduN')">Clear all</button></div>
+        <div id="eduWrap"></div>
+        <button id="addEduBtn" class="add-btn" onclick="addEdu()">+ Add Education</button>
+      </div>
+      <div class="form-sec">
+        <div class="sec-header"><div class="sec-label" data-i18n="secSkills">Skills</div><button class="clear-btn" onclick="clearSkills()">Clear all</button></div>
+        <div class="f"><label data-i18n="lblClinic">Clinical / Technical (comma-separated)</label><input id="clinSkills" placeholder="IV Therapy, Wound Care, Telemetry, EHR/EMR" oninput="rp()"></div>
+        <div class="f"><label data-i18n="lblProf">Professional / Soft (comma-separated)</label><input id="profSkills" placeholder="Patient Communication, Critical Thinking, Team Collaboration" oninput="rp()"></div>
+      </div>
+      <div class="form-sec">
+        <div class="sec-header"><div class="sec-label" data-i18n="secCover">Cover Letter</div><button class="clear-btn" onclick="clearCoverLetter()">Clear all</button></div>
+        <div class="row2">
+          <div class="f"><label data-i18n="lblMgr">Hiring Manager Name</label><input id="clMgr" placeholder="Maxwell Sterling" oninput="rp()"></div>
+          <div class="f"><label data-i18n="lblMgrTitle">Their Title</label><input id="clTitle" placeholder="Hiring Manager" oninput="rp()"></div>
+        </div>
+        <div class="f"><label data-i18n="lblCompany">Company Name</label><input id="clCompany" placeholder="ABC Medical Center" oninput="rp()"></div>
+        <div class="f"><label data-i18n="lblOpening">Opening Paragraph</label><textarea id="clP1" rows="3" placeholder="I am writing to express my strong interest in the Registered Nurse position at…" oninput="rp()"></textarea></div>
+        <div class="f"><label data-i18n="lblBody">Body Paragraph</label><textarea id="clP2" rows="3" placeholder="With 5+ years of ICU experience and expertise in…" oninput="rp()"></textarea></div>
+        <div class="f"><label data-i18n="lblClosing">Closing Paragraph</label><textarea id="clP3" rows="2" placeholder="I would welcome the opportunity to discuss how my skills…" oninput="rp()"></textarea></div>
+      </div>
+      <div class="form-sec">
+        <div class="sec-header"><div class="sec-label" data-i18n="secRefs">References</div><button class="clear-btn" onclick="clearSection('refsWrap','refN')">Clear all</button></div>
+        <div id="refsWrap"></div>
+        <button id="addRefBtn" class="add-btn" onclick="addRef()">+ Add Reference</button>
+      </div>
+    </div><!-- /ftab-info -->
+
+    <!-- TAB: EXPERIENCE -->
+    <div id="ftab-experience" style="display:none">
+      <div class="form-sec">
+        <div class="sec-header"><div class="sec-label" data-i18n="secWork">Work Experience</div><button class="clear-btn" onclick="clearSection('workWrap','workN')">Clear all</button></div>
+        <div id="workWrap"></div>
+        <button id="addWorkBtn" class="add-btn" onclick="addWork()">+ Add Position</button>
+      </div>
+      <div class="form-sec" id="rotSec" style="display:none">
+        <div class="sec-header"><div class="sec-label" data-i18n="secRots">Clinical Rotations (New Grad)</div><button class="clear-btn" onclick="clearSection('rotWrap','rotN')">Clear all</button></div>
+        <div id="rotWrap"></div>
+        <button id="addRotBtn" class="add-btn" onclick="addRotation()">+ Add Rotation</button>
+      </div>
+      <div class="form-sec">
+        <div class="sec-header"><div class="sec-label" data-i18n="secAchieve">Achievements</div><button class="clear-btn" onclick="clearSection('achieveWrap','achN')">Clear all</button></div>
+        <div id="achieveWrap"></div>
+        <button id="addAchieveBtn" class="add-btn" onclick="addAchieve()">+ Add Achievement</button>
+      </div>
+      <div class="form-sec">
+        <div class="sec-header"><div class="sec-label" data-i18n="secProDev">Professional Development</div><button class="clear-btn" onclick="clearSection('proDevWrap','pdN')">Clear all</button></div>
+        <div id="proDevWrap"></div>
+        <button id="addProDevBtn" class="add-btn" onclick="addProDev()">+ Add Course / Training</button>
+      </div>
+    </div>
+
+    <!-- TAB: DESIGN -->
+    <div id="ftab-design" style="display:none">
+      <div class="form-sec">
+        <div class="sec-label" data-i18n="secColor">Color & Version</div>
+        <div class="f"><label data-i18n="lblAccent">Accent Color</label>
+          <div class="swatches">
+            <div class="sw-wrap"><div class="sw active" data-c="beige" onclick="setColor('#C9A87C',this)"></div><div class="sw-lbl" data-i18n="swBeige">Beige</div></div>
+            <div class="sw-wrap"><div class="sw" data-c="sage" onclick="setColor('#8FAF8F',this)"></div><div class="sw-lbl" data-i18n="swSage">Sage</div></div>
+            <div class="sw-wrap"><div class="sw" data-c="rose" onclick="setColor('#C4897A',this)"></div><div class="sw-lbl" data-i18n="swRose">Rose</div></div>
+            <div class="sw-wrap"><div class="sw" data-c="slate" onclick="setColor('#7A95AF',this)"></div><div class="sw-lbl" data-i18n="swSlate">Slate</div></div>
+            <div class="sw-wrap"><div class="sw" data-c="mauve" onclick="setColor('#A67B8A',this)"></div><div class="sw-lbl" data-i18n="swMauve">Mauve</div></div>
+          </div>
+        </div>
+        <div class="f" style="margin-top:10px"><label data-i18n="lblVersion">Version</label>
+          <div class="vtabs">
+            <button class="vtab active" onclick="setVer('exp',this)">Experienced</button>
+            <button class="vtab" onclick="setVer('newgrad',this)">New Grad</button>
+
+          </div>
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="sec-label" data-i18n="secFonts">Font Sizes</div>
+        <div class="f"><label>Name (First) — <span id="fs-name1-val">30</span>px</label><div class="fs-control"><input type="range" min="20" max="48" value="30" id="fs-name1" oninput="updateFS('name1',this.value);rp()"></div></div>
+        <div class="f"><label>Name (Last + Cred) — <span id="fs-name2-val">30</span>px</label><div class="fs-control"><input type="range" min="20" max="48" value="30" id="fs-name2" oninput="updateFS('name2',this.value);rp()"></div></div>
+        <div class="f"><label>Job Title — <span id="fs-jobtitle-val">9</span>px</label><div class="fs-control"><input type="range" min="7" max="14" value="9" id="fs-jobtitle" oninput="updateFS('jobtitle',this.value);rp()"></div></div>
+        <div class="f"><label>Section Headers — <span id="fs-sec-val">8</span>px</label><div class="fs-control"><input type="range" min="6" max="12" value="8" id="fs-sec" oninput="updateFS('sec',this.value);rp()"></div></div>
+        <div class="f"><label>Body Text — <span id="fs-body-val">11</span>px</label><div class="fs-control"><input type="range" min="8" max="13" value="11" id="fs-body" oninput="updateFS('body',this.value);rp()"></div></div>
+        <div class="f"><label>Bullet Points — <span id="fs-bullet-val">10.5</span>px</label><div class="fs-control"><input type="range" min="7" max="12" step=".5" value="10.5" id="fs-bullet" oninput="updateFS('bullet',this.value);rp()"></div></div>
+        <div class="f"><label>Contact Info — <span id="fs-contact-val">10</span>px</label><div class="fs-control"><input type="range" min="7" max="12" step=".5" value="10" id="fs-contact" oninput="updateFS('contact',this.value);rp()"></div></div>
+        <div class="f"><label>Sidebar Labels — <span id="fs-label-val">8</span>px</label><div class="fs-control"><input type="range" min="6" max="11" value="8" id="fs-label" oninput="updateFS('label',this.value);rp()"></div></div>
+      </div>
+      <div class="form-sec" style="border-top:2px solid var(--border);padding-top:16px;">
+        <div class="sec-header">
+          <div class="sec-label" data-i18n="secMargins">Margins (px)</div>
+          <button class="clear-btn" onclick="resetMargins()">Reset</button>
+        </div>
+        <div class="row2">
+          <div class="f">
+            <label data-i18n="lblMgTop">Top</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="range" min="8" max="60" value="28" id="mg-top" oninput="setMg('top',this.value)" style="flex:1;">
+              <span id="mg-top-val" style="font-size:10px;min-width:24px;color:var(--mid);text-align:right;">28</span>
+            </div>
+          </div>
+          <div class="f">
+            <label data-i18n="lblMgBottom">Bottom</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="range" min="8" max="60" value="28" id="mg-bottom" oninput="setMg('bottom',this.value)" style="flex:1;">
+              <span id="mg-bottom-val" style="font-size:10px;min-width:24px;color:var(--mid);text-align:right;">28</span>
+            </div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="f">
+            <label data-i18n="lblMgLeft">Left</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="range" min="8" max="72" value="32" id="mg-left" oninput="setMg('left',this.value)" style="flex:1;">
+              <span id="mg-left-val" style="font-size:10px;min-width:24px;color:var(--mid);text-align:right;">32</span>
+            </div>
+          </div>
+          <div class="f">
+            <label data-i18n="lblMgRight">Right</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="range" min="8" max="72" value="32" id="mg-right" oninput="setMg('right',this.value)" style="flex:1;">
+              <span id="mg-right-val" style="font-size:10px;min-width:24px;color:var(--mid);text-align:right;">32</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: DOWNLOAD -->
+    <div id="ftab-delivery" style="display:none">
+      <div class="form-sec">
+        <div class="sec-label" id="genFilesTitle">Files You Will Download</div>
+        <div style="font-size:11px;color:var(--mid);line-height:2.4;">
+          <div style="margin-bottom:8px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:700;"><span id="genResumePDFs">Resume PDFs (6 files)</span></div>
+          ✓ Resume — US Letter PDF<br>
+          ✓ Resume — A4 PDF<br>
+          ✓ Cover Letter — US Letter PDF<br>
+          ✓ Cover Letter — A4 PDF<br>
+          ✓ References — US Letter PDF<br>
+          ✓ References — A4 PDF<br>
+          <div style="margin-top:12px;margin-bottom:8px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:700;"><span id="genBonus">Bonus Guides (3 files)</span></div>
+          ✓ Getting Started Guide PDF<br>
+          ✓ Resume Writing Tips (Nurse-specific) PDF<br>
+          ✓ Power Verbs List PDF
+        </div>
+      </div>
+      <div class="form-sec">
+        <div class="sec-label" id="genHowTitle">How It Works</div>
+        <div style="font-size:11px;color:var(--mid);line-height:2.2;">
+          1. <span id="genStep1">Fill in your info (Info &amp; Experience tabs)</span><br>
+          2. <span id="genStep2">Choose your color &amp; version (Design tab)</span><br>
+          3. <span id="genStep3">Click <strong style="color:var(--dark)">Generate All Resume Files</strong></span><br>
+          4. <span id="genStep4">ZIP file downloads automatically to your device</span>
+        </div>
+      </div>
+      <input type="hidden" id="delEmail" value="customer@local">
+      <input type="hidden" id="orderId" value="">
+    </div>
+
+  </div><!-- /form-body -->
+  <div class="form-footer">
+    <button class="gen-btn" id="genBtn" onclick="generateFiles()">✦ Generate All Resume Files</button>
+    <div class="gen-status" id="genStatus"></div>
+  </div>
+</div><!-- /form-panel -->
+
+<!-- ═══ PREVIEW PANEL ═══ -->
+<div class="preview-panel">
+  <div class="prev-tabs">
+    <button class="prev-tab active" id="ptab-resume" onclick="showPrev('resume1',this)">Resume</button>
+    <button class="prev-tab" id="ptab-cover" onclick="showPrev('cover',this)">Cover Letter</button>
+    <button class="prev-tab" id="ptab-refs" onclick="showPrev('refs',this)">References</button>
+    <button class="prev-tab" id="ptab-output" onclick="showPrev('output',this)">📁 Files</button>
+  </div>
+  <div class="prev-body" id="prevBody">
+    <!-- Resume viewer — full scrollable, auto page breaks -->
+    <div id="resume-viewer" style="display:flex;flex-direction:column;align-items:center;width:100%;gap:0;">
+      <div id="resume-scroll-wrap" style="width:100%;max-width:640px;display:flex;flex-direction:column;align-items:stretch;gap:16px;">
+        <div class="paper" id="prev-resume1"></div>
+      </div>
+    </div>
+    <div class="paper" id="prev-cover" style="display:none"></div>
+    <div class="paper" id="prev-refs" style="display:none"></div>
+    <div class="output-box" id="prev-output" style="display:none">
+      <div class="output-title">📁 Generated Files</div>
+      <div id="outputContent"><div style="color:var(--light);font-size:11px;">Click "Generate All Resume Files" to create your files.</div></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<div class="loading" id="loading">
+  <div class="spin"></div>
+  <div class="load-txt" id="loadTxt">Preparing files…</div>
+</div>
+
+<script>
+
+// ══════════════════════════════════════════════════════
+// LANGUAGE SYSTEM
+// ══════════════════════════════════════════════════════
+let currentLang = 'en';
+
+const TRANSLATIONS = {
+  en: {
+    // Form tabs
+    tabInfo:'Info', tabExp:'Experience', tabDesign:'Design', tabGenerate:'Generate',
+    // Preview tabs
+    prevResume:'Resume', prevCover:'Cover Letter', prevRefs:'References',
+    // Section labels (form)
+    secPersonal:'Personal Info', secSummary:'Profile Summary', secCerts:'Certifications & Licenses',
+    secEdu:'Education', secSkills:'Skills', secCover:'Cover Letter', secRefs:'References',
+    secWork:'Work Experience', secRots:'Clinical Rotations (New Grad)',
+    secAchieve:'Achievements', secProDev:'Professional Development',
+    secColor:'Color & Version', secFonts:'Font Sizes',
+    // Field labels
+    lblFirst:'First Name', lblLast:'Last Name', lblCred:'Credentials',
+    lblTitle:'Job Title', lblPhone:'Phone', lblEmail:'Email',
+    lblLoc:'City, State', lblLI:'LinkedIn',
+    lblClinic:'Clinical / Technical (comma-separated)', lblProf:'Professional / Soft (comma-separated)',
+    lblMgr:'Hiring Manager Name', lblMgrTitle:'Their Title', lblCompany:'Company Name',
+    lblOpening:'Opening Paragraph', lblBody:'Body Paragraph', lblClosing:'Closing Paragraph',
+    // Buttons
+    btnAddCert:'+ Add Certification', btnAddEdu:'+ Add Education',
+    btnAddWork:'+ Add Position', btnAddRot:'+ Add Rotation',
+    btnAddRef:'+ Add Reference', btnAddAchieve:'+ Add Achievement', btnAddProDev:'+ Add Course / Training',
+    btnGenerate:'✦ Generate All Resume Files',
+    // Version
+    verExp:'Experienced', verNew:'New Grad',
+    // Resume section headers
+    rContact:'Contact', rCerts:'Certifications', rEdu:'Education', rSkills:'Skills',
+    rProfile:'Profile', rWork:'Work Experience', rWorkCont:'Work Experience (Cont.)',
+    rRotations:'Clinical Rotations', rAchievements:'Achievements', rProDev:'Professional Development',
+    rReferences:'References',
+    rTechnical:'Technical Skills', rProfessional:'Professional Skills',
+    // Cover letter
+    clDear:'Dear', clSincerely:'Sincerely',
+    // Status messages
+    stUploading:'Uploading data to server…', stGenerating:'Generating PDFs… (30–60 sec)',
+    stPreparing:'Preparing download…', stDone:'✓ Download started!',
+    stTimeout:'Timeout — please try again',
+    // Generate tab content
+    genFilesTitle:'Files You Will Download',
+    genResumePDFs:'Resume PDFs (8 files)', genBonus:'Bonus Guides (3 files)',
+    genHowTitle:'How It Works',
+    genStep1:'Fill in your info (Info & Experience tabs)',
+    genStep2:'Choose your color & version (Design tab)',
+    genStep3:'Click Generate All Resume Files',
+    genStep4:'ZIP file downloads automatically to your device',
+    lblAccent:'Accent Color',
+    lblVersion:'Version',
+    swBeige:'Beige',
+    swSage:'Sage',
+    swRose:'Rose',
+    swSlate:'Slate',
+    swMauve:'Mauve',
+    secMargins:'Margins (px)',
+    lblMgTop:'Top',
+    lblMgBottom:'Bottom',
+    lblMgLeft:'Left',
+    lblMgRight:'Right',
+    eName:'Name',
+    eIssuer:'Issuer',
+    eExpiry:'Expiry',
+    eDeg:'Degree',
+    eSchool:'School',
+    eYear:'Year',
+    eTitle:'Title',
+    eDates:'Dates',
+    eEmployer:'Employer',
+    eLocation:'Location',
+    eBullets:'Bullets (one per line)',
+    eSetting:'Setting',
+    eFacility:'Facility',
+    eRefName:'Name',
+    ePosition:'Position',
+    eCompany:'Company / Location',
+    ePhone:'Phone',
+    eEmail:'Email',
+    eAward:'Award / Achievement',
+    eOrg:'Organization',
+    eDate:'Date',
+    eCourse:'Course / Training',
+    eInst:'Institution',
+  },
+  de: {
+    tabInfo:'Info', tabExp:'Erfahrung', tabDesign:'Design', tabGenerate:'Generieren',
+    prevResume:'Lebenslauf', prevCover:'Anschreiben', prevRefs:'Referenzen',
+    secPersonal:'Persönliche Daten', secSummary:'Profil', secCerts:'Zertifikate & Lizenzen',
+    secEdu:'Ausbildung', secSkills:'Fähigkeiten', secCover:'Anschreiben', secRefs:'Referenzen',
+    secWork:'Berufserfahrung', secRots:'Klinische Rotationen (Berufseinsteiger)',
+    secAchieve:'Auszeichnungen', secProDev:'Weiterbildung',
+    secColor:'Farbe & Version', secFonts:'Schriftgrößen',
+    lblFirst:'Vorname', lblLast:'Nachname', lblCred:'Qualifikationen',
+    lblTitle:'Berufsbezeichnung', lblPhone:'Telefon', lblEmail:'E-Mail',
+    lblLoc:'Stadt, Bundesland', lblLI:'LinkedIn',
+    lblClinic:'Klinisch / Technisch (kommagetrennt)', lblProf:'Beruflich / Sozial (kommagetrennt)',
+    lblMgr:'Name der Kontaktperson', lblMgrTitle:'Position', lblCompany:'Unternehmen',
+    lblOpening:'Eröffnungsabsatz', lblBody:'Hauptabsatz', lblClosing:'Schlussabsatz',
+    btnAddCert:'+ Zertifikat hinzufügen', btnAddEdu:'+ Ausbildung hinzufügen',
+    btnAddWork:'+ Stelle hinzufügen', btnAddRot:'+ Rotation hinzufügen',
+    btnAddRef:'+ Referenz hinzufügen', btnAddAchieve:'+ Auszeichnung hinzufügen', btnAddProDev:'+ Kurs hinzufügen',
+    btnGenerate:'✦ Alle Lebenslauf-Dateien erstellen',
+    verExp:'Erfahren', verNew:'Berufseinsteiger',
+    rContact:'Kontakt', rCerts:'Zertifikate', rEdu:'Ausbildung', rSkills:'Fähigkeiten',
+    rProfile:'Profil', rWork:'Berufserfahrung', rWorkCont:'Berufserfahrung (Forts.)',
+    rRotations:'Klinische Rotationen', rAchievements:'Auszeichnungen', rProDev:'Weiterbildung',
+    rReferences:'Referenzen', rTechnical:'Technische Fähigkeiten', rProfessional:'Berufliche Kompetenzen',
+    clDear:'Sehr geehrte/r', clSincerely:'Mit freundlichen Grüßen',
+    stUploading:'Daten werden hochgeladen…', stGenerating:'PDFs werden erstellt… (30–60 Sek)',
+    stPreparing:'Download wird vorbereitet…', stDone:'✓ Download gestartet!',
+    stTimeout:'Zeitüberschreitung – bitte erneut versuchen',
+    genFilesTitle:'Ihre Download-Dateien',
+    genResumePDFs:'Lebenslauf-PDFs (8 Dateien)', genBonus:'Bonus-Anleitungen (3 Dateien)',
+    genHowTitle:'So funktioniert es',
+    genStep1:'Daten eingeben (Info & Erfahrung)',
+    genStep2:'Farbe & Version wählen (Design)',
+    genStep3:'„Alle Lebenslauf-Dateien erstellen" klicken',
+    genStep4:'ZIP-Datei wird automatisch heruntergeladen',
+    lblAccent:'Akzentfarbe',
+    lblVersion:'Version',
+    swBeige:'Beige',
+    swSage:'Salbei',
+    swRose:'Rose',
+    swSlate:'Schiefer',
+    swMauve:'Malve',
+    secMargins:'Abstände (px)',
+    lblMgTop:'Oben',
+    lblMgBottom:'Unten',
+    lblMgLeft:'Links',
+    lblMgRight:'Rechts',
+    eName:'Name',
+    eIssuer:'Aussteller',
+    eExpiry:'Ablaufdatum',
+    eDeg:'Abschluss',
+    eSchool:'Hochschule',
+    eYear:'Jahr',
+    eTitle:'Berufsbezeichnung',
+    eDates:'Zeitraum',
+    eEmployer:'Arbeitgeber',
+    eLocation:'Ort',
+    eBullets:'Aufgaben (eine pro Zeile)',
+    eSetting:'Fachbereich',
+    eFacility:'Einrichtung',
+    eRefName:'Name',
+    ePosition:'Position',
+    eCompany:'Unternehmen / Ort',
+    ePhone:'Telefon',
+    eEmail:'E-Mail',
+    eAward:'Auszeichnung',
+    eOrg:'Organisation',
+    eDate:'Datum',
+    eCourse:'Kurs / Schulung',
+    eInst:'Institution',
+  },
+  fr: {
+    tabInfo:'Info', tabExp:'Expérience', tabDesign:'Design', tabGenerate:'Générer',
+    prevResume:'CV', prevCover:'Lettre de motivation', prevRefs:'Références',
+    secPersonal:'Informations personnelles', secSummary:'Résumé de profil', secCerts:'Certifications & Licences',
+    secEdu:'Formation', secSkills:'Compétences', secCover:'Lettre de motivation', secRefs:'Références',
+    secWork:'Expérience professionnelle', secRots:'Stages cliniques (Nouveau diplômé)',
+    secAchieve:'Récompenses', secProDev:'Développement professionnel',
+    secColor:'Couleur & Version', secFonts:'Tailles de police',
+    lblFirst:'Prénom', lblLast:'Nom de famille', lblCred:'Qualifications',
+    lblTitle:'Titre professionnel', lblPhone:'Téléphone', lblEmail:'E-mail',
+    lblLoc:'Ville, Région', lblLI:'LinkedIn',
+    lblClinic:'Clinique / Technique (séparés par virgule)', lblProf:'Professionnel / Transversal (séparés par virgule)',
+    lblMgr:'Nom du responsable', lblMgrTitle:'Titre', lblCompany:'Établissement',
+    lblOpening:'Paragraphe d\'ouverture', lblBody:'Paragraphe principal', lblClosing:'Paragraphe de clôture',
+    btnAddCert:'+ Ajouter une certification', btnAddEdu:'+ Ajouter une formation',
+    btnAddWork:'+ Ajouter un poste', btnAddRot:'+ Ajouter un stage',
+    btnAddRef:'+ Ajouter une référence', btnAddAchieve:'+ Ajouter une récompense', btnAddProDev:'+ Ajouter une formation',
+    btnGenerate:'✦ Générer tous les fichiers CV',
+    verExp:'Expérimenté(e)', verNew:'Nouveau diplômé',
+    rContact:'Contact', rCerts:'Certifications', rEdu:'Formation', rSkills:'Compétences',
+    rProfile:'Profil', rWork:'Expérience professionnelle', rWorkCont:'Expérience professionnelle (suite)',
+    rRotations:'Stages cliniques', rAchievements:'Récompenses', rProDev:'Développement professionnel',
+    rReferences:'Références', rTechnical:'Compétences techniques', rProfessional:'Compétences professionnelles',
+    clDear:'Madame, Monsieur', clSincerely:'Cordialement',
+    stUploading:'Envoi des données…', stGenerating:'Génération des PDFs… (30–60 sec)',
+    stPreparing:'Préparation du téléchargement…', stDone:'✓ Téléchargement démarré !',
+    stTimeout:'Délai dépassé — veuillez réessayer',
+    genFilesTitle:'Fichiers à télécharger',
+    genResumePDFs:'PDFs de CV (8 fichiers)', genBonus:'Guides bonus (3 fichiers)',
+    genHowTitle:'Comment ça marche',
+    genStep1:'Saisissez vos informations (onglets Info & Expérience)',
+    genStep2:'Choisissez votre couleur & version (Design)',
+    genStep3:'Cliquez sur « Générer tous les fichiers CV »',
+    genStep4:'Le fichier ZIP se télécharge automatiquement',
+    lblAccent:'Couleur accent',
+    lblVersion:'Version',
+    swBeige:'Beige',
+    swSage:'Sauge',
+    swRose:'Rose',
+    swSlate:'Ardoise',
+    swMauve:'Mauve',
+    secMargins:'Marges (px)',
+    lblMgTop:'Haut',
+    lblMgBottom:'Bas',
+    lblMgLeft:'Gauche',
+    lblMgRight:'Droite',
+    eName:'Nom',
+    eIssuer:'Organisme',
+    eExpiry:'Expiration',
+    eDeg:'Diplôme',
+    eSchool:'Établissement',
+    eYear:'Année',
+    eTitle:'Titre du poste',
+    eDates:'Période',
+    eEmployer:'Employeur',
+    eLocation:'Lieu',
+    eBullets:'Missions (une par ligne)',
+    eSetting:'Service',
+    eFacility:'Établissement',
+    eRefName:'Nom',
+    ePosition:'Poste',
+    eCompany:'Entreprise / Lieu',
+    ePhone:'Téléphone',
+    eEmail:'E-mail',
+    eAward:'Récompense',
+    eOrg:'Organisation',
+    eDate:'Date',
+    eCourse:'Formation',
+    eInst:'Organisme',
+  },
+  nl: {
+    tabInfo:'Info', tabExp:'Ervaring', tabDesign:'Ontwerp', tabGenerate:'Genereren',
+    prevResume:'CV', prevCover:'Motivatiebrief', prevRefs:'Referenties',
+    secPersonal:'Persoonlijke gegevens', secSummary:'Profielsamenvatting', secCerts:'Certificaten & Licenties',
+    secEdu:'Opleiding', secSkills:'Vaardigheden', secCover:'Motivatiebrief', secRefs:'Referenties',
+    secWork:'Werkervaring', secRots:'Klinische stages (Starter)',
+    secAchieve:'Prestaties', secProDev:'Professionele ontwikkeling',
+    secColor:'Kleur & Versie', secFonts:'Lettergroottes',
+    lblFirst:'Voornaam', lblLast:'Achternaam', lblCred:'Kwalificaties',
+    lblTitle:'Functietitel', lblPhone:'Telefoon', lblEmail:'E-mail',
+    lblLoc:'Stad, Provincie', lblLI:'LinkedIn',
+    lblClinic:'Klinisch / Technisch (komma-gescheiden)', lblProf:'Professioneel / Sociaal (komma-gescheiden)',
+    lblMgr:'Naam contactpersoon', lblMgrTitle:'Functie', lblCompany:'Instelling',
+    lblOpening:'Openingsparagraaf', lblBody:'Hoofdparagraaf', lblClosing:'Slotparagraaf',
+    btnAddCert:'+ Certificaat toevoegen', btnAddEdu:'+ Opleiding toevoegen',
+    btnAddWork:'+ Positie toevoegen', btnAddRot:'+ Stage toevoegen',
+    btnAddRef:'+ Referentie toevoegen', btnAddAchieve:'+ Prestatie toevoegen', btnAddProDev:'+ Cursus toevoegen',
+    btnGenerate:'✦ Alle CV-bestanden genereren',
+    verExp:'Ervaren', verNew:'Starters',
+    rContact:'Contact', rCerts:'Certificaten', rEdu:'Opleiding', rSkills:'Vaardigheden',
+    rProfile:'Profiel', rWork:'Werkervaring', rWorkCont:'Werkervaring (vervolg)',
+    rRotations:'Klinische stages', rAchievements:'Prestaties', rProDev:'Professionele ontwikkeling',
+    rReferences:'Referenties', rTechnical:'Technische vaardigheden', rProfessional:'Professionele vaardigheden',
+    clDear:'Geachte', clSincerely:'Met vriendelijke groet',
+    stUploading:'Gegevens uploaden…', stGenerating:'PDFs genereren… (30–60 sec)',
+    stPreparing:'Download voorbereiden…', stDone:'✓ Download gestart!',
+    stTimeout:'Timeout — probeer opnieuw',
+    genFilesTitle:'Uw downloadbestanden',
+    genResumePDFs:'CV-PDFs (8 bestanden)', genBonus:'Bonushandleidingen (3 bestanden)',
+    genHowTitle:'Hoe het werkt',
+    genStep1:'Vul uw gegevens in (tabbladen Info & Ervaring)',
+    genStep2:'Kies uw kleur & versie (Ontwerp)',
+    genStep3:'Klik op „Alle CV-bestanden genereren"',
+    genStep4:'ZIP-bestand wordt automatisch gedownload',
+    lblAccent:'Accentkleur',
+    lblVersion:'Versie',
+    swBeige:'Beige',
+    swSage:'Salie',
+    swRose:'Roze',
+    swSlate:'Leisteen',
+    swMauve:'Mauve',
+    secMargins:'Marges (px)',
+    lblMgTop:'Boven',
+    lblMgBottom:'Onder',
+    lblMgLeft:'Links',
+    lblMgRight:'Rechts',
+    eName:'Naam',
+    eIssuer:'Uitgevende instelling',
+    eExpiry:'Vervaldatum',
+    eDeg:'Diploma',
+    eSchool:'Instelling',
+    eYear:'Jaar',
+    eTitle:'Functietitel',
+    eDates:'Periode',
+    eEmployer:'Werkgever',
+    eLocation:'Locatie',
+    eBullets:'Taken (één per regel)',
+    eSetting:'Afdeling',
+    eFacility:'Instelling',
+    eRefName:'Naam',
+    ePosition:'Functie',
+    eCompany:'Bedrijf / Locatie',
+    ePhone:'Telefoon',
+    eEmail:'E-mail',
+    eAward:'Prestatie',
+    eOrg:'Organisatie',
+    eDate:'Datum',
+    eCourse:'Cursus / Training',
+    eInst:'Instelling',
+  },
+  th: {
+    tabInfo:'ข้อมูล', tabExp:'ประสบการณ์', tabDesign:'ดีไซน์', tabGenerate:'สร้างไฟล์',
+    prevR1:'เรซูเม่ 1หน้า', prevR2:'เรซูเม่ 2หน้า', prevCover:'จดหมายสมัครงาน', prevRefs:'ผู้อ้างอิง',
+    secPersonal:'ข้อมูลส่วนตัว', secSummary:'สรุปโปรไฟล์', secCerts:'ใบรับรอง & ใบอนุญาต',
+    secEdu:'การศึกษา', secSkills:'ทักษะ', secCover:'จดหมายสมัครงาน', secRefs:'ผู้อ้างอิง',
+    secWork:'ประสบการณ์การทำงาน', secRots:'การฝึกงานคลินิก (ผู้สำเร็จการศึกษาใหม่)',
+    secAchieve:'ความสำเร็จ', secProDev:'การพัฒนาวิชาชีพ',
+    secColor:'สี & เวอร์ชัน', secFonts:'ขนาดตัวอักษร',
+    lblFirst:'ชื่อ', lblLast:'นามสกุล', lblCred:'คุณวุฒิ',
+    lblTitle:'ตำแหน่ง', lblPhone:'โทรศัพท์', lblEmail:'อีเมล',
+    lblLoc:'เมือง, จังหวัด', lblLI:'LinkedIn',
+    lblClinic:'ทักษะคลินิก / เทคนิค (คั่นด้วยเครื่องหมายจุลภาค)', lblProf:'ทักษะวิชาชีพ (คั่นด้วยเครื่องหมายจุลภาค)',
+    lblMgr:'ชื่อผู้จัดการ', lblMgrTitle:'ตำแหน่ง', lblCompany:'ชื่อสถานพยาบาล',
+    lblOpening:'ย่อหน้าเปิด', lblBody:'ย่อหน้าหลัก', lblClosing:'ย่อหน้าปิด',
+    btnAddCert:'+ เพิ่มใบรับรอง', btnAddEdu:'+ เพิ่มการศึกษา',
+    btnAddWork:'+ เพิ่มตำแหน่งงาน', btnAddRot:'+ เพิ่มการฝึกงาน',
+    btnAddRef:'+ เพิ่มผู้อ้างอิง', btnAddAchieve:'+ เพิ่มความสำเร็จ', btnAddProDev:'+ เพิ่มหลักสูตร',
+    btnGenerate:'✦ สร้างไฟล์เรซูเม่ทั้งหมด',
+    verExp:'มีประสบการณ์', verNew:'ผู้สำเร็จการศึกษาใหม่',
+    rContact:'ติดต่อ', rCerts:'ใบรับรอง', rEdu:'การศึกษา', rSkills:'ทักษะ',
+    rProfile:'โปรไฟล์', rWork:'ประสบการณ์การทำงาน', rWorkCont:'ประสบการณ์การทำงาน (ต่อ)',
+    rRotations:'การฝึกงานคลินิก', rAchievements:'ความสำเร็จ', rProDev:'การพัฒนาวิชาชีพ',
+    rReferences:'ผู้อ้างอิง', rTechnical:'ทักษะทางเทคนิค', rProfessional:'ทักษะวิชาชีพ',
+    clDear:'เรียน', clSincerely:'ด้วยความนับถือ',
+    stUploading:'กำลังอัปโหลดข้อมูล…', stGenerating:'กำลังสร้าง PDF… (30–60 วินาที)',
+    stPreparing:'กำลังเตรียมดาวน์โหลด…', stDone:'✓ เริ่มดาวน์โหลดแล้ว!',
+    stTimeout:'หมดเวลา — กรุณาลองใหม่',
+    genFilesTitle:'ไฟล์ที่จะดาวน์โหลด',
+    genResumePDFs:'PDF เรซูเม่ (8 ไฟล์)', genBonus:'คู่มือโบนัส (3 ไฟล์)',
+    genHowTitle:'วิธีใช้งาน',
+    genStep1:'กรอกข้อมูล (แท็บ ข้อมูล & ประสบการณ์)',
+    genStep2:'เลือกสีและเวอร์ชัน (ดีไซน์)',
+    genStep3:'กด "สร้างไฟล์เรซูเม่ทั้งหมด"',
+    genStep4:'ไฟล์ ZIP จะดาวน์โหลดอัตโนมัติ',
+    lblAccent:'สีเน้น',
+    lblVersion:'เวอร์ชัน',
+    swBeige:'เบจ',
+    swSage:'เซจ',
+    swRose:'โรส',
+    swSlate:'สเลท',
+    swMauve:'มอฟ',
+    secMargins:'ระยะขอบ (px)',
+    lblMgTop:'บน',
+    lblMgBottom:'ล่าง',
+    lblMgLeft:'ซ้าย',
+    lblMgRight:'ขวา',
+    eName:'ชื่อ',
+    eIssuer:'ผู้ออกใบรับรอง',
+    eExpiry:'วันหมดอายุ',
+    eDeg:'วุฒิการศึกษา',
+    eSchool:'สถาบัน',
+    eYear:'ปี',
+    eTitle:'ตำแหน่งงาน',
+    eDates:'ช่วงเวลา',
+    eEmployer:'นายจ้าง',
+    eLocation:'สถานที่',
+    eBullets:'หน้าที่ (หนึ่งบรรทัดต่อข้อ)',
+    eSetting:'แผนก',
+    eFacility:'สถานพยาบาล',
+    eRefName:'ชื่อ',
+    ePosition:'ตำแหน่ง',
+    eCompany:'บริษัท / สถานที่',
+    ePhone:'โทรศัพท์',
+    eEmail:'อีเมล',
+    eAward:'รางวัล / ความสำเร็จ',
+    eOrg:'องค์กร',
+    eDate:'วันที่',
+    eCourse:'หลักสูตร / การฝึกอบรม',
+    eInst:'สถาบัน',
+  },
+  es: {
+    tabInfo:'Info', tabExp:'Experiencia', tabDesign:'Diseño', tabGenerate:'Generar',
+    prevResume:'CV', prevCover:'Carta de presentación', prevRefs:'Referencias',
+    secPersonal:'Información personal', secSummary:'Resumen de perfil', secCerts:'Certificaciones & Licencias',
+    secEdu:'Educación', secSkills:'Habilidades', secCover:'Carta de presentación', secRefs:'Referencias',
+    secWork:'Experiencia laboral', secRots:'Rotaciones clínicas (Recién graduado)',
+    secAchieve:'Logros', secProDev:'Desarrollo profesional',
+    secColor:'Color & Versión', secFonts:'Tamaños de fuente',
+    lblFirst:'Nombre', lblLast:'Apellido', lblCred:'Credenciales',
+    lblTitle:'Título profesional', lblPhone:'Teléfono', lblEmail:'Correo electrónico',
+    lblLoc:'Ciudad, Estado', lblLI:'LinkedIn',
+    lblClinic:'Clínico / Técnico (separado por comas)', lblProf:'Profesional / Blando (separado por comas)',
+    lblMgr:'Nombre del responsable', lblMgrTitle:'Cargo', lblCompany:'Centro médico',
+    lblOpening:'Párrafo de apertura', lblBody:'Párrafo principal', lblClosing:'Párrafo de cierre',
+    btnAddCert:'+ Agregar certificación', btnAddEdu:'+ Agregar educación',
+    btnAddWork:'+ Agregar puesto', btnAddRot:'+ Agregar rotación',
+    btnAddRef:'+ Agregar referencia', btnAddAchieve:'+ Agregar logro', btnAddProDev:'+ Agregar curso',
+    btnGenerate:'✦ Generar todos los archivos de CV',
+    verExp:'Con experiencia', verNew:'Recién graduado',
+    rContact:'Contacto', rCerts:'Certificaciones', rEdu:'Educación', rSkills:'Habilidades',
+    rProfile:'Perfil', rWork:'Experiencia laboral', rWorkCont:'Experiencia laboral (cont.)',
+    rRotations:'Rotaciones clínicas', rAchievements:'Logros', rProDev:'Desarrollo profesional',
+    rReferences:'Referencias', rTechnical:'Habilidades técnicas', rProfessional:'Habilidades profesionales',
+    clDear:'Estimado/a', clSincerely:'Atentamente',
+    stUploading:'Subiendo datos…', stGenerating:'Generando PDFs… (30–60 seg)',
+    stPreparing:'Preparando descarga…', stDone:'✓ ¡Descarga iniciada!',
+    stTimeout:'Tiempo agotado — inténtelo de nuevo',
+    genFilesTitle:'Archivos para descargar',
+    genResumePDFs:'PDFs de CV (8 archivos)', genBonus:'Guías de bonificación (3 archivos)',
+    genHowTitle:'Cómo funciona',
+    genStep1:'Complete su información (pestañas Info & Experiencia)',
+    genStep2:'Elija su color & versión (Diseño)',
+    genStep3:'Haga clic en „Generar todos los archivos de CV"',
+    genStep4:'El archivo ZIP se descarga automáticamente',
+    lblAccent:'Color acento',
+    lblVersion:'Versión',
+    swBeige:'Beige',
+    swSage:'Salvia',
+    swRose:'Rosa',
+    swSlate:'Pizarra',
+    swMauve:'Malva',
+    secMargins:'Márgenes (px)',
+    lblMgTop:'Superior',
+    lblMgBottom:'Inferior',
+    lblMgLeft:'Izquierdo',
+    lblMgRight:'Derecho',
+    eName:'Nombre',
+    eIssuer:'Emisor',
+    eExpiry:'Vencimiento',
+    eDeg:'Título',
+    eSchool:'Institución',
+    eYear:'Año',
+    eTitle:'Título del puesto',
+    eDates:'Período',
+    eEmployer:'Empleador',
+    eLocation:'Ubicación',
+    eBullets:'Funciones (una por línea)',
+    eSetting:'Servicio',
+    eFacility:'Centro',
+    eRefName:'Nombre',
+    ePosition:'Cargo',
+    eCompany:'Empresa / Ubicación',
+    ePhone:'Teléfono',
+    eEmail:'Correo',
+    eAward:'Premio / Logro',
+    eOrg:'Organización',
+    eDate:'Fecha',
+    eCourse:'Curso / Formación',
+    eInst:'Institución',
+  },
+};
+
+function T(key){ return (TRANSLATIONS[currentLang]||TRANSLATIONS.en)[key] || TRANSLATIONS.en[key] || key; }
+
+function toggleLangMenu(e){
+  e.stopPropagation();
+  document.getElementById('langDropMenu').classList.toggle('open');
+}
+function pickLang(lang, btn){
+  currentLang = lang;
+  document.querySelectorAll('.lang-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const label = LANG_LABELS[lang]||lang.toUpperCase();
+  document.getElementById('langLabel').textContent = label;
+  document.getElementById('langDropMenu').classList.remove('open');
+  applyLang();
+  // USER-BUG-02: re-render dynamic entry sections with new language labels
+  // collect current DOM data FIRST, then rebuild with T() in new language
+  rerenderDynamicSections();
+  rp();
+}
+function setLang(lang){
+  const btn = document.querySelector(`.lang-opt[data-lang="${lang}"]`);
+  if(btn) pickLang(lang, btn);
+}
+// Close dropdown when clicking outside
+// Close dropdown when clicking outside (belt-and-suspenders for USER-BUG-01)
+document.addEventListener('click', ()=>{ document.getElementById('langDropMenu')?.classList.remove('open'); });
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape') document.getElementById('langDropMenu')?.classList.remove('open');
+});
+
+const LANG_LABELS={en:'English (EN)',de:'Deutsch (DE)',fr:'Français (FR)',nl:'Nederlands (NL)',th:'ภาษาไทย (TH)',es:'Español (ES)'};
+
+
+function applyLang(){
+  const L = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+
+  // Form tabs
+  const ftabs = document.querySelectorAll('.form-tab');
+  if(ftabs[0]) ftabs[0].textContent = L.tabInfo;
+  if(ftabs[1]) ftabs[1].textContent = L.tabExp;
+  if(ftabs[2]) ftabs[2].textContent = L.tabDesign;
+  if(ftabs[3]) ftabs[3].textContent = L.tabGenerate;
+
+  // Preview tabs
+  const ptabResume = document.getElementById('ptab-resume');
+  const ptabCover  = document.getElementById('ptab-cover');
+  const ptabRefs   = document.getElementById('ptab-refs');
+  if(ptabResume) ptabResume.textContent = L.prevResume || 'Resume';
+  if(ptabCover)  ptabCover.textContent  = L.prevCover;
+  if(ptabRefs)   ptabRefs.textContent   = L.prevRefs;
+
+  // Generate button
+  const genBtn = document.getElementById('genBtn');
+  if(genBtn) genBtn.textContent = L.btnGenerate;
+
+  // Section labels — map sec-label elements by data-key attribute
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(L[key]) el.textContent = L[key];
+  });
+
+  // Add buttons
+  const addBtns = {
+    'addCertBtn':L.btnAddCert, 'addEduBtn':L.btnAddEdu,
+    'addWorkBtn':L.btnAddWork, 'addRotBtn':L.btnAddRot,
+    'addRefBtn':L.btnAddRef, 'addAchieveBtn':L.btnAddAchieve, 'addProDevBtn':L.btnAddProDev,
+  };
+  Object.entries(addBtns).forEach(([id,txt])=>{ const el=document.getElementById(id); if(el) el.textContent=txt; });
+
+  // Version buttons
+  const vtabs = document.querySelectorAll('.vtab');
+  if(vtabs[0]) vtabs[0].textContent = L.verExp;
+  if(vtabs[1]) vtabs[1].textContent = L.verNew;
+  // vtabs[2] (2-Page) removed
+
+  // Generate tab content
+  const genFilesTitle = document.getElementById('genFilesTitle');
+  if(genFilesTitle) genFilesTitle.textContent = L.genFilesTitle;
+  const genResumePDFs = document.getElementById('genResumePDFs');
+  if(genResumePDFs) genResumePDFs.textContent = L.genResumePDFs;
+  const genBonus = document.getElementById('genBonus');
+  if(genBonus) genBonus.textContent = L.genBonus;
+  const genHowTitle = document.getElementById('genHowTitle');
+  if(genHowTitle) genHowTitle.textContent = L.genHowTitle;
+  ['genStep1','genStep2','genStep3','genStep4'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent = L['genStep'+(i+1)];
+  });
+
+  // Apply Thai font class to all paper elements
+  document.querySelectorAll('.paper').forEach(p=>{
+    p.classList.toggle('lang-th', currentLang==='th');
+  });
+}
+
+// ── STATE ──
+let accent='#C9A87C', ver='exp';
+let certN=0,eduN=0,workN=0,rotN=0,refN=0,achN=0,pdN=0;
+let prevMode='resume1';
+const FS={name1:30,name2:30,jobtitle:9,sec:8,body:11,bullet:10.5,contact:10,label:8};
+// Paper margins (px at 96dpi, applied to paper padding in preview)
+// Default: top=28, bottom=28, left=32, right=32
+const MG={top:28,bottom:28,left:32,right:32};
+
+// ── ICONS ──
+const IC={
+  phone:`<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328z"/></svg>`,
+  email:`<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383-4.708 2.825L15 11.105V5.383zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741zM1 11.105l4.708-2.897L1 5.383v5.722z"/></svg>`,
+  loc:`<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>`,
+  li:`<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/></svg>`
+};
+
+// ── TAB CONTROL ──
+function showFormTab(id,el){
+  document.querySelectorAll('[id^="ftab-"]').forEach(t=>t.style.display='none');
+  document.getElementById('ftab-'+id).style.display='block';
+  document.querySelectorAll('.form-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+// ── PAGE NAVIGATION STATE ──
+let currentPageIdx = 0;
+// Page height is dynamic — paper preview is 640px wide (not 816px/8.5in)
+// Letter: 640 × (11/8.5) ≈ 827px; A4: 640 × (297/210) ≈ 906px
+function getPageH(){
+  const paper = document.getElementById('prev-resume1');
+  const w = (paper && paper.clientWidth) || 640;
+  return Math.round(w * 11/8.5); // Letter ratio
+}
+
+function showPrev(id,el){
+  prevMode=id;
+  const viewer = document.getElementById('resume-viewer');
+  ['cover','refs','output'].forEach(k=>{
+    const p=document.getElementById('prev-'+k);
+    if(p) p.style.display='none';
+  });
+  if(id==='resume1'){
+    if(viewer) viewer.style.display='flex';
+  } else {
+    if(viewer) viewer.style.display='none';
+    const t=document.getElementById('prev-'+id);
+    if(t) t.style.display='block';
+  }
+  document.querySelectorAll('.prev-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentPageIdx=0;
+  rp();
+}
+
+// changePage removed — no longer paginating preview
+
+// updatePageViewport removed
+
+// ── DESIGN ──
+function setColor(hex,el){
+  accent=hex;
+  document.documentElement.style.setProperty('--accent',hex);
+  document.querySelectorAll('.sw').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  rp();
+}
+function setVer(v,el){
+  ver=v;
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('rotSec').style.display=v==='newgrad'?'block':'none';
+  rp();
+}
+function updateFS(key,val){
+  FS[key]=parseFloat(val);
+  document.getElementById('fs-'+key+'-val').textContent=val;
+}
+
+
+
+
+// ── RE-RENDER DYNAMIC SECTIONS (USER-BUG-02) ──
+// Called on language change — saves current DOM data, clears, re-adds with new T() labels
+function rerenderDynamicSections(){
+  // Collect all current data from DOM before clearing
+  const certs   = collectCerts();
+  const edu     = collectEdu();
+  const work    = collectWork();
+  const rots    = collectRots();
+  const achieve = collectAch();
+  const proDev  = collectPD();
+  const refs    = collectRefs();
+
+  // Certifications
+  document.getElementById('certsWrap').innerHTML=''; certN=0;
+  (certs.length ? certs : []).forEach(c=>addCert(c.name,c.body,c.expiry));
+
+  // Education
+  document.getElementById('eduWrap').innerHTML=''; eduN=0;
+  (edu.length ? edu : []).forEach(e=>addEdu(e.deg,e.school,e.year));
+
+  // Work Experience
+  document.getElementById('workWrap').innerHTML=''; workN=0;
+  (work.length ? work : []).forEach(w=>addWork(w.title,w.emp,w.loc,w.dates,w.bullets));
+
+  // Clinical Rotations
+  document.getElementById('rotWrap').innerHTML=''; rotN=0;
+  (rots.length ? rots : []).forEach(r=>addRotation(r.setting,r.facility,r.dates));
+
+  // Achievements
+  document.getElementById('achieveWrap').innerHTML=''; achN=0;
+  (achieve.length ? achieve : []).forEach(a=>addAchieve(a.name,a.org,a.date));
+
+  // Professional Development
+  document.getElementById('proDevWrap').innerHTML=''; pdN=0;
+  (proDev.length ? proDev : []).forEach(p=>addProDev(p.name,p.inst,p.date));
+
+  // References
+  document.getElementById('refsWrap').innerHTML=''; refN=0;
+  (refs.length ? refs : []).forEach(r=>addRef(r.name,r.pos,r.co,r.ph,r.em));
+}
+
+// ── LOAD DEFAULT DATA INTO FORM ──
+function loadDefaultData(){
+  const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  s('fName',DEF.fn); s('lName',DEF.ln); s('cred',DEF.cr); s('jobTitle',DEF.jt);
+  s('phone',DEF.phone); s('email',DEF.email); s('loc',DEF.loc); s('linkedin',DEF.li);
+  s('summary',DEF.summary); s('clinSkills',DEF.clinSkills); s('profSkills',DEF.profSkills);
+  s('clMgr',DEF.clMgr); s('clTitle',DEF.clTitle); s('clCompany',DEF.clCompany);
+  s('clP1',DEF.clP1); s('clP2',DEF.clP2); s('clP3',DEF.clP3);
+
+  // Dynamic sections — clear then populate from DEF
+  document.getElementById('certsWrap').innerHTML=''; certN=0;
+  DEF.certs.forEach(c=>addCert(c.name,c.body,c.expiry));
+
+  document.getElementById('eduWrap').innerHTML=''; eduN=0;
+  DEF.edu.forEach(e=>addEdu(e.deg,e.school,e.year));
+
+  document.getElementById('workWrap').innerHTML=''; workN=0;
+  // USER-BUG-03: default shows 3 entries (fits 1-page); all 8 available via DEF.work for 2-page testing
+  DEF.work.slice(0,3).forEach(w=>addWork(w.title,w.emp,w.loc,w.dates,w.bullets));
+
+  document.getElementById('rotWrap').innerHTML=''; rotN=0;
+  DEF.rots.forEach(r=>addRotation(r.setting,r.facility,r.dates));
+
+  document.getElementById('achieveWrap').innerHTML=''; achN=0;
+  DEF.achieve.forEach(a=>addAchieve(a.name,a.org,a.date));
+
+  document.getElementById('proDevWrap').innerHTML=''; pdN=0;
+  DEF.proDev.forEach(p=>addProDev(p.name,p.inst,p.date));
+
+  document.getElementById('refsWrap').innerHTML=''; refN=0;
+  DEF.refs.forEach(r=>addRef(r.name,r.pos,r.co,r.ph,r.em));
+}
+
+
+// ── CLEAR PERSONAL / SKILLS / COVER LETTER ──
+function clearPersonal(){
+  ['fName','lName','cred','jobTitle','phone','email','loc','linkedin','summary']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  rp();
+}
+function clearSkills(){
+  ['clinSkills','profSkills'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  rp();
+}
+function clearCoverLetter(){
+  ['clMgr','clTitle','clCompany','clP1','clP2','clP3']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  rp();
+}
+
+
+// ── OVERFLOW DETECTION (BUG-03 / WARN-02) ──
+function checkOverflow(){
+  const LETTER_H = getPageH ? getPageH() : 827; // dynamic letter height
+  const pageH = LETTER_H;
+  // For resume1, just check the first paper (page 1) — pages 2+ are expected to overflow
+  const resumePaper = document.getElementById('prev-resume1');
+  if(resumePaper && resumePaper.style.display!=='none'){
+    // overflow badge removed — smart page breaking handles multi-page now
+    const badge = resumePaper.querySelector('.overflow-badge');
+    if(badge) badge.remove();
+  }
+  // Cover and refs: check normally
+  ['prev-cover','prev-refs'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el || el.style.display==='none') return;
+    const h = el.scrollHeight;
+    let badge = el.querySelector('.overflow-badge');
+    if(h > pageH * 1.02){
+      if(!badge){badge=document.createElement('div');badge.className='overflow-badge';el.appendChild(badge);}
+      badge.textContent='⚠ Content may overflow — consider reducing text';
+      badge.style.cssText='position:sticky;bottom:0;background:#FFF3CD;color:#856404;font-size:10px;padding:4px 8px;text-align:center;border-top:1px solid #FFEEBA;';
+    } else {
+      if(badge) badge.remove();
+    }
+  });
+}
+
+
+// ── MARGIN CONTROL ──
+
+function resetMargins(){
+  ['top','bottom','left','right'].forEach(side=>{
+    const def = (side==='left'||side==='right') ? 32 : 28;
+    MG[side] = def;
+    const slider = document.getElementById('mg-'+side);
+    const val    = document.getElementById('mg-'+side+'-val');
+    if(slider) slider.value = def;
+    if(val)    val.textContent = def;
+  });
+  applyMargins(); rp();
+}
+function setMg(side, val){
+  MG[side] = parseInt(val);
+  const el = document.getElementById('mg-'+side+'-val');
+  if(el) el.textContent = val;
+  applyMargins();
+  rp();
+}
+function applyMargins(){
+  // Apply to paper padding via CSS custom properties
+  const paper = document.querySelector('.paper');
+  if(!paper) return;
+  // Update CSS variable approach — inject a style tag
+  let st = document.getElementById('margin-style');
+  if(!st){ st=document.createElement('style'); st.id='margin-style'; document.head.appendChild(st); }
+  st.textContent = `
+    :root { --page-margin-top: ${MG.top}px; }
+    .rh { padding-top:${MG.top}px; padding-left:${MG.left}px; padding-right:${MG.right}px; }
+    .rb .r-left { padding-top:${MG.top/2}px; padding-bottom:${MG.bottom}px; padding-left:${MG.left}px; }
+    .rb .r-right { padding-top:${MG.top/2}px; padding-bottom:${MG.bottom}px; padding-right:${MG.right}px; }
+    .r-profile-wrap { padding-bottom:${MG.bottom}px; }
+  `;
+}
+
+// ── CLEAR SECTION ──
+function clearSection(wrapId, counterVar){
+  document.getElementById(wrapId).innerHTML='';
+  if(counterVar==='certN') certN=0;
+  else if(counterVar==='eduN') eduN=0;
+  else if(counterVar==='workN') workN=0;
+  else if(counterVar==='rotN') rotN=0;
+  else if(counterVar==='refN') refN=0;
+  else if(counterVar==='achN') achN=0;
+  else if(counterVar==='pdN')  pdN=0;
+  rp();
+}
+// ── ENTRY BUILDERS ──
+function addCert(n='',b='',e=''){
+  certN++;const id=certN;
+  const d=document.createElement('div');d.className='entry';d.id='cert-'+id;
+  d.innerHTML=`<button class="rm" onclick="rm('cert-${id}')">×</button>
+    <div class="row2"><div class="f"><label>${T('eName')}</label><input id="cN${id}" value="${n}" placeholder="ACLS" oninput="rp()"></div></div>
+    <div class="row2">
+      <div class="f"><label>${T('eIssuer')}</label><input id="cB${id}" value="${b}" placeholder="AHA" oninput="rp()"></div>
+      <div class="f"><label>${T('eExpiry')}</label><input id="cE${id}" value="${e}" placeholder="12/2026" oninput="rp()"></div>
+    </div>`;
+  document.getElementById('certsWrap').appendChild(d);rp();
+}
+function addEdu(d='',s='',y=''){
+  eduN++;const id=eduN;
+  const el=document.createElement('div');el.className='entry';el.id='edu-'+id;
+  el.innerHTML=`<button class="rm" onclick="rm('edu-${id}')">×</button>
+    <div class="f"><label>${T('eDeg')}</label><input id="eD${id}" value="${d}" placeholder="BSN" oninput="rp()"></div>
+    <div class="row2">
+      <div class="f"><label>${T('eSchool')}</label><input id="eS${id}" value="${s}" placeholder="University" oninput="rp()"></div>
+      <div class="f"><label>${T('eYear')}</label><input id="eY${id}" value="${y}" placeholder="2019" oninput="rp()"></div>
+    </div>`;
+  document.getElementById('eduWrap').appendChild(el);rp();
+}
+function addWork(t='',emp='',l='',dt='',bl=''){
+  workN++;const id=workN;
+  const d=document.createElement('div');d.className='entry';d.id='work-'+id;
+  d.innerHTML=`<button class="rm" onclick="rm('work-${id}')">×</button>
+    <div class="row2">
+      <div class="f"><label>${T('eTitle')}</label><input id="wT${id}" value="${t}" placeholder="RN – ICU" oninput="rp()"></div>
+      <div class="f"><label>${T('eDates')}</label><input id="wD${id}" value="${dt}" placeholder="Jun 2019 – Present" oninput="rp()"></div>
+    </div>
+    <div class="row2">
+      <div class="f"><label>${T('eEmployer')}</label><input id="wE${id}" value="${emp}" placeholder="Hospital" oninput="rp()"></div>
+      <div class="f"><label>${T('eLocation')}</label><input id="wL${id}" value="${l}" placeholder="City, ST" oninput="rp()"></div>
+    </div>
+    <div class="f"><label>${T('eBullets')}</label><textarea id="wB${id}" rows="4" oninput="rp()">${bl}</textarea></div>`;
+  document.getElementById('workWrap').appendChild(d);rp();
+}
+function addRotation(s='',f='',dt=''){
+  rotN++;const id=rotN;
+  const d=document.createElement('div');d.className='entry';d.id='rot-'+id;
+  d.innerHTML=`<button class="rm" onclick="rm('rot-${id}')">×</button>
+    <div class="row2">
+      <div class="f"><label>${T('eSetting')}</label><input id="rS${id}" value="${s}" placeholder="Pediatric ICU" oninput="rp()"></div>
+      <div class="f"><label>${T('eDates')}</label><input id="rDt${id}" value="${dt}" placeholder="Fall 2023" oninput="rp()"></div>
+    </div>
+    <div class="f"><label>${T('eFacility')}</label><input id="rF${id}" value="${f}" placeholder="Children's Hospital" oninput="rp()"></div>`;
+  document.getElementById('rotWrap').appendChild(d);rp();
+}
+function addRef(n='',pos='',co='',ph='',em=''){
+  refN++;const id=refN;
+  const d=document.createElement('div');d.className='entry';d.id='ref-'+id;
+  d.innerHTML=`<button class="rm" onclick="rm('ref-${id}')">×</button>
+    <div class="row2">
+      <div class="f"><label>${T('eRefName')}</label><input id="rfN${id}" value="${n}" placeholder="Dr. Jane Smith" oninput="rp()"></div>
+      <div class="f"><label>${T('ePosition')}</label><input id="rfP${id}" value="${pos}" placeholder="Charge Nurse" oninput="rp()"></div>
+    </div>
+    <div class="row2">
+      <div class="f"><label>${T('eCompany')}</label><input id="rfC${id}" value="${co}" placeholder="St. David's, Austin TX" oninput="rp()"></div>
+      <div class="f"><label>${T('ePhone')}</label><input id="rfPh${id}" value="${ph}" placeholder="T: 555-0001" oninput="rp()"></div>
+    </div>
+    <div class="f"><label>${T('eEmail')}</label><input id="rfE${id}" value="${em}" placeholder="E: name@hospital.com" oninput="rp()"></div>`;
+  document.getElementById('refsWrap').appendChild(d);rp();
+}
+function addAchieve(n='',org='',dt=''){
+  achN++;const id=achN;
+  const d=document.createElement('div');d.className='entry';d.id='ach-'+id;
+  d.innerHTML=`<button class="rm" onclick="rm('ach-${id}')">×</button>
+    <div class="f"><label>${T('eAward')}</label><input id="achN${id}" value="${n}" placeholder="DAISY Award" oninput="rp()"></div>
+    <div class="row2">
+      <div class="f"><label>${T('eOrg')}</label><input id="achO${id}" value="${org}" placeholder="St. David's" oninput="rp()"></div>
+      <div class="f"><label>${T('eDate')}</label><input id="achD${id}" value="${dt}" placeholder="2023" oninput="rp()"></div>
+    </div>`;
+  document.getElementById('achieveWrap').appendChild(d);rp();
+}
+function addProDev(n='',inst='',dt=''){
+  pdN++;const id=pdN;
+  const d=document.createElement('div');d.className='entry';d.id='pd-'+id;
+  d.innerHTML=`<button class="rm" onclick="rm('pd-${id}')">×</button>
+    <div class="f"><label>${T('eCourse')}</label><input id="pdN${id}" value="${n}" placeholder="Critical Care Nursing" oninput="rp()"></div>
+    <div class="row2">
+      <div class="f"><label>${T('eInst')}</label><input id="pdI${id}" value="${inst}" placeholder="ANA" oninput="rp()"></div>
+      <div class="f"><label>${T('eDate')}</label><input id="pdD${id}" value="${dt}" placeholder="2024" oninput="rp()"></div>
+    </div>`;
+  document.getElementById('proDevWrap').appendChild(d);rp();
+}
+function rm(id){const el=document.getElementById(id);if(el)el.remove();rp();}
+
+
+// ── SMART PAGE BREAKS IN PREVIEW ──
+// Split rendered resume into separate .paper divs — one per page.
+// Each page div is a visual card like a real sheet of paper.
+// Also injects padding-top spacer at top of pages 2+ for PDF margin.
+function insertPageBreaks(paper){
+  if(!paper) return;
+
+  const pageH = getPageH ? getPageH() : Math.round((paper.clientWidth||640)*11/8.5);
+  const container = paper.parentNode; // resume-scroll-wrap
+
+  // Remove all extra page divs we created previously (keep only the first paper)
+  const allPapers = container.querySelectorAll('.paper');
+  allPapers.forEach((p,i)=>{ if(i>0) p.remove(); });
+
+  // Remove old page-break markers inside the paper
+  paper.querySelectorAll('.page-break-marker, .page-top-spacer').forEach(m=>m.remove());
+
+  // Walk breakable elements to find where page boundaries fall
+  const els = paper.querySelectorAll('.r-job, .r-cert, .r-edu-item, .r-sec');
+  if(!els.length) return;
+
+  const paperRect = paper.getBoundingClientRect();
+  const paperTop = paperRect.top + window.scrollY;
+
+  // Collect all page-break points: elements that start on a new page
+  const breakBefore = []; // elements that should start a new page
+  let currentPage = 1;
+
+  els.forEach(el=>{
+    const elTop = el.getBoundingClientRect().top + window.scrollY - paperTop;
+    const pageEnd = currentPage * pageH;
+    if(elTop >= pageEnd - 2){ // -2px tolerance
+      currentPage = Math.ceil((elTop+1) / pageH);
+      breakBefore.push(el);
+    }
+  });
+
+  if(!breakBefore.length) return; // fits on one page, nothing to do
+
+  // Build extra page divs for pages 2+
+  breakBefore.forEach((breakEl, idx)=>{
+    // Create a new paper div for this page
+    const newPage = document.createElement('div');
+    newPage.className = 'paper' + (paper.classList.contains('lang-th')?' lang-th':'');
+    newPage.style.cssText = paper.style.cssText;
+
+    // Add top-margin spacer inside the new page div (matches MG.top for PDF consistency)
+    const topSpacer = document.createElement('div');
+    topSpacer.className = 'page-top-spacer';
+    topSpacer.style.cssText = `height:${MG.top}px;display:block;`;
+    newPage.appendChild(topSpacer);
+
+    // Move all elements from breakEl onwards into the new page
+    // We need to move them into the same parent structure (.r-right or .r-left)
+    // Strategy: clone the parent wrappers (.rb, .r-right/.r-left) and move elements
+    const rb = breakEl.closest('.rb');
+    const rRight = breakEl.closest('.r-right');
+    const rLeft = paper.querySelector('.r-left');
+
+    if(rb && rRight){
+      // Clone the full .rb grid structure (empty)
+      const newRb = rb.cloneNode(false); // shallow — no children
+      const newRLeft = rLeft ? rLeft.cloneNode(false) : null;
+      const newRRight = rRight.cloneNode(false);
+
+      // Collect elements to move: breakEl and all following siblings in .r-right
+      const toMove = [];
+      let sibling = breakEl;
+      while(sibling){ toMove.push(sibling); sibling = sibling.nextElementSibling; }
+      toMove.forEach(el=>newRRight.appendChild(el));
+
+      if(newRLeft) newRb.appendChild(newRLeft);
+      newRb.appendChild(newRRight);
+      newPage.appendChild(newRb);
+    } else {
+      // Fallback: just move all following siblings
+      const toMove = [];
+      let sibling = breakEl;
+      while(sibling){ toMove.push(sibling); sibling = sibling.nextElementSibling; }
+      toMove.forEach(el=>newPage.appendChild(el));
+    }
+
+    // Insert gap marker then new page after current paper (correct order for preview)
+    const gap = document.createElement('div');
+    gap.className = 'page-gap-marker';
+    gap.setAttribute('aria-hidden','true');
+    container.appendChild(gap);
+    container.appendChild(newPage);
+    paper = newPage; // next page break splits from the new page
+  });
+}
+
+// ── COLLECT DATA ──
+function gv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function collectCerts(){return Array.from(document.querySelectorAll('[id^="cert-"]')).map(b=>{const i=b.id.replace('cert-','');return{name:gv('cN'+i),body:gv('cB'+i),expiry:gv('cE'+i)};}).filter(c=>c.name);}
+function collectEdu(){return Array.from(document.querySelectorAll('[id^="edu-"]')).map(b=>{const i=b.id.replace('edu-','');return{deg:gv('eD'+i),school:gv('eS'+i),year:gv('eY'+i)};}).filter(e=>e.deg);}
+function collectWork(){return Array.from(document.querySelectorAll('[id^="work-"]')).map(b=>{const i=b.id.replace('work-','');return{title:gv('wT'+i),dates:gv('wD'+i),emp:gv('wE'+i),loc:gv('wL'+i),bullets:gv('wB'+i)};}).filter(w=>w.title);}
+function collectRots(){return Array.from(document.querySelectorAll('[id^="rot-"]')).map(b=>{const i=b.id.replace('rot-','');return{setting:gv('rS'+i),facility:gv('rF'+i),dates:gv('rDt'+i)};}).filter(r=>r.setting);}
+function collectRefs(){return Array.from(document.querySelectorAll('[id^="ref-"]')).map(b=>{const i=b.id.replace('ref-','');return{name:gv('rfN'+i),pos:gv('rfP'+i),co:gv('rfC'+i),ph:gv('rfPh'+i),em:gv('rfE'+i)};}).filter(r=>r.name);}
+function collectAch(){return Array.from(document.querySelectorAll('[id^="ach-"]')).map(b=>{const i=b.id.replace('ach-','');return{name:gv('achN'+i),org:gv('achO'+i),date:gv('achD'+i)};}).filter(a=>a.name);}
+function collectPD(){return Array.from(document.querySelectorAll('[id^="pd-"]')).map(b=>{const i=b.id.replace('pd-','');return{name:gv('pdN'+i),inst:gv('pdI'+i),date:gv('pdD'+i)};}).filter(p=>p.name);}
+
+// ── EKG SVG (top-right style) ──
+function ekgSVG(col){
+  return `<svg width="150" height="26" viewBox="0 0 150 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0" y1="13" x2="60" y2="13" stroke="${col}" stroke-width="1" opacity="0.4"/>
+    <polyline points="60,13 72,13 78,5 82,21 87,1 92,25 97,13 115,13" fill="none" stroke="${col}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="115" y1="13" x2="150" y2="13" stroke="${col}" stroke-width="1" opacity="0.4"/>
+  </svg>`;
+}
+
+// ── BUILD HEADER (shared across all docs) ──
+function buildHeader(firstName,lastName,cred,jobTitle){
+  const ln2=cred?`${lastName}, ${cred}`:lastName;
+  return `<div class="rh">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div class="rh-name1" style="font-size:${FS.name1}px">${firstName||'YOUR'}</div>
+        <div class="rh-name2" style="font-size:${FS.name2}px;color:${accent}">${ln2||'NAME, RN'}</div>
+      </div>
+      <div style="margin-top:4px">${ekgSVG(accent)}</div>
+    </div>
+    <div class="rh-title" style="font-size:${FS.jobtitle}px">${jobTitle||'REGISTERED NURSE'}</div>
+    <div class="rh-divider" style="background:${accent};margin-top:10px;"></div>
+  </div>`;
+}
+
+// ── BUILD LEFT SIDEBAR ──
+function buildSidebar(phone,email,loc,linkedin,certs,edu,clinSkills,profSkills,forCoverLetter=false){
+  let h=`<div class="r-left">`;
+  // Contact
+  h+=`<div class="r-sec" style="color:${accent};border-color:${accent};font-size:${FS.sec}px">${T('rContact')}</div>`;
+  const ci=(icon,text)=>text?`<div class="r-ci" style="font-size:${FS.contact}px">${IC[icon]}<span>${text}</span></div>`:'';
+  h+=ci('phone',phone)+ci('email',email)+ci('loc',loc)+ci('li',linkedin);
+
+  if(!forCoverLetter){
+    // Certs
+    if(certs.length){
+      h+=`<div class="r-sec" style="color:${accent};border-color:${accent};font-size:${FS.sec}px;margin-top:16px">${T('rCerts')}</div>`;
+      certs.forEach(c=>{h+=`<div class="r-cert"><div class="r-cert-name" style="font-size:${FS.body}px">${c.name}</div><div class="r-cert-det" style="font-size:${FS.label}px">${[c.body,c.expiry].filter(Boolean).join(' | ')}</div></div>`;});
+    }
+    // Edu
+    if(edu.length){
+      h+=`<div class="r-sec" style="color:${accent};border-color:${accent};font-size:${FS.sec}px;margin-top:16px">${T('rEdu')}</div>`;
+      edu.forEach(e=>{h+=`<div class="r-edu-item"><div class="r-edu-deg" style="font-size:${FS.body}px">${e.deg}</div><div class="r-edu-sch" style="font-size:${FS.label}px">${e.school}</div><div class="r-edu-yr" style="font-size:${FS.label}px">${e.year}</div></div>`;});
+    }
+    // Skills
+    const clin=clinSkills.split(',').map(s=>s.trim()).filter(Boolean);
+    const prof=profSkills.split(',').map(s=>s.trim()).filter(Boolean);
+    h+=`<div class="r-sec" style="color:${accent};border-color:${accent};font-size:${FS.sec}px;margin-top:16px">${T('rSkills')}</div>`;
+    if(clin.length) h+=`<div class="r-sg"><div class="r-sg-lbl" style="font-size:${FS.label}px">${T('rTechnical')}</div>${clin.map(s=>`<div class="r-sk" style="font-size:${FS.contact}px">${s}</div>`).join('')}</div>`;
+    if(prof.length) h+=`<div class="r-sg"><div class="r-sg-lbl" style="font-size:${FS.label}px">${T('rProfessional')}</div>${prof.map(s=>`<div class="r-sk" style="font-size:${FS.contact}px">${s}</div>`).join('')}</div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+// ── RENDER RESUME 1P ──
+function renderResume1(d){
+  const {fn,ln,cr,jt,phone,email,loc,li,summary,certs,edu,clinSkills,profSkills,
+         work,rots,achieve,proDev}=d;
+  const showWork = ver!=='newgrad';
+  const secH = (key)=>`<div class="r-sec" style="color:${accent};border-color:${accent};font-size:${FS.sec}px;margin-top:16px">${T(key)}</div>`;
+
+  let main=`<div class="r-right">`;
+
+  // Profile summary
+  if(summary){
+    main+=`<div class="r-sec" style="color:${accent};border-color:${accent};font-size:${FS.sec}px">${T('rProfile')}</div>`;
+    main+=`<div class="r-sum" style="font-size:${FS.body}px">${summary}</div>`;
+  }
+
+  // Work Experience (Experienced) OR Clinical Rotations (New Grad)
+  if(showWork && work.length){
+    main+=secH('rWork');
+    work.forEach(w=>{
+      const bls=w.bullets.split('\n').map(b=>b.trim()).filter(Boolean);
+      main+=`<div class="r-job" style="page-break-inside:avoid;">
+        <div class="r-job-hd"><span class="r-job-title" style="font-size:${FS.body}px">${w.title.replace(/^\d+\.\s*/,"")}</span><span class="r-job-date" style="font-size:${FS.label}px">${w.dates}</span></div>
+        <div class="r-job-place" style="font-size:${FS.label}px">${w.emp}${w.loc?' | '+w.loc:''}</div>
+        ${bls.length?`<ul class="r-job-ul">${bls.map(b=>`<li style="font-size:${FS.bullet}px">${b.replace(/^[•\-]\s*/,'')}</li>`).join('')}</ul>`:''}
+      </div>`;
+    });
+  }
+  if(!showWork && rots.length){
+    main+=secH('rRotations');
+    rots.forEach(r=>{
+      main+=`<div class="r-job" style="page-break-inside:avoid;">
+        <div class="r-job-hd"><span class="r-job-title" style="font-size:${FS.body}px">${r.setting}</span><span class="r-job-date" style="font-size:${FS.label}px">${r.dates}</span></div>
+        <div class="r-job-place" style="font-size:${FS.label}px">${r.facility}</div>
+      </div>`;
+    });
+  }
+
+  // Achievements (Experienced only — shown after work, same page or next)
+  if(showWork && achieve && achieve.length){
+    main+=secH('rAchievements');
+    achieve.forEach(a=>{
+      main+=`<div class="r-cert" style="page-break-inside:avoid;">
+        <div class="r-cert-name" style="font-size:${FS.body}px">${a.name}</div>
+        <div class="r-cert-det" style="font-size:${FS.label}px">${[a.org,a.date].filter(Boolean).join(' | ')}</div>
+      </div>`;
+    });
+  }
+
+  // Professional Development (Experienced only)
+  if(showWork && proDev && proDev.length){
+    main+=secH('rProDev');
+    proDev.forEach(p=>{
+      main+=`<div class="r-cert" style="page-break-inside:avoid;">
+        <div class="r-cert-name" style="font-size:${FS.body}px">${p.name}</div>
+        <div class="r-cert-det" style="font-size:${FS.label}px">${[p.inst,p.date].filter(Boolean).join(' | ')}</div>
+      </div>`;
+    });
+  }
+
+  main+=`</div>`;
+  return buildHeader(fn,ln,cr,jt)+
+    `<div class="rb">${buildSidebar(phone,email,loc,li,certs,edu,clinSkills,profSkills)}${main}</div>`;
+}
+
+
+// ── RENDER COVER LETTER ──
+function renderCover(d){
+  const {fn,ln,cr,jt,phone,email,loc,li,clMgr,clTitle,clCompany,clP1,clP2,clP3}=d;
+  const left=buildSidebar(phone,email,loc,li,[],[],'',' ',true);
+  const toBlock=`<div class="cl-to" style="margin-bottom:18px">
+    ${clMgr?`<div style="font-size:${FS.body}px;font-weight:700">${clMgr}</div>`:''}
+    ${clTitle?`<div style="font-size:${FS.body}px;color:#555">${clTitle}</div>`:''}
+    ${clCompany?`<div style="font-size:${FS.body}px;color:#555">${clCompany}</div>`:''}
+    ${clMgr?`<div style="font-size:${FS.body}px;margin-top:10px">${T('clDear')} ${clMgr},</div>`:''}
+  </div>`;
+  const fullName=`${fn||'Marina'} ${ln||'Thompson'}`;
+  const right=`<div class="cl-right">
+    ${toBlock}
+    ${clP1?`<p class="cl-para" style="font-size:${FS.body}px">${clP1}</p>`:''}
+    ${clP2?`<p class="cl-para" style="font-size:${FS.body}px">${clP2}</p>`:''}
+    ${clP3?`<p class="cl-para" style="font-size:${FS.body}px">${clP3}</p>`:''}
+    <p style="font-size:${FS.body}px;color:#555;margin-top:14px">Sincerely,</p>
+    <div class="cl-sig-script">${fullName}</div>
+    <div class="cl-sig-print" style="font-size:${FS.body}px">${fullName}</div>
+  </div>`;
+  return buildHeader(fn,ln,cr,jt)+`<div class="cl-body">${left}${right}</div>`;
+}
+
+// ── RENDER REFERENCES ──
+function renderRefs(d){
+  const {fn,ln,cr,jt,phone,email,loc,li,refs}=d;
+  const left=buildSidebar(phone,email,loc,li,[],[],'',' ',true);
+  let refGrid='';
+  if(refs.length){
+    refGrid=`<div class="ref-grid">`;
+    refs.forEach(r=>{
+      refGrid+=`<div class="ref-item">
+        <div class="ref-name" style="font-size:${FS.body}px">${r.name}</div>
+        <div class="ref-pos" style="font-size:${FS.label}px">${r.pos}</div>
+        <div class="ref-detail" style="font-size:${FS.label}px">${r.co}</div>
+        ${r.ph?`<div class="ref-detail" style="font-size:${FS.label}px">${r.ph}</div>`:''}
+        ${r.em?`<div class="ref-detail" style="font-size:${FS.label}px">${r.em}</div>`:''}
+      </div>`;
+    });
+    refGrid+=`</div>`;
+  } else {
+    refGrid=`<div style="color:#CCC;font-size:11px;margin-top:12px">Add references in the Info tab.</div>`;
+  }
+  const right=`<div class="r-right">
+    <div class="r-sec" style="color:${accent};border-color:${accent};font-size:${FS.sec}px">${T('rReferences')}</div>
+    ${refGrid}
+  </div>`;
+  return buildHeader(fn,ln,cr,jt)+`<div class="cl-body">${left}${right}</div>`;
+}
+
+// ── COLLECT ALL DATA (shared by preview + PDF generation) ──
+// ── DEFAULT TEST DATA ──────────────────────────────────────────
+const DEF={
+  fn:'Marina', ln:'Thompson', cr:'BSN, RN, CCRN', jt:'Registered Nurse',
+  phone:'(555) 867-5309', email:'marina.thompson@email.com',
+  loc:'Austin, TX', li:'linkedin.com/in/marinathompson',
+  summary:'Compassionate and highly skilled Registered Nurse with 9+ years of progressive critical care and medical-surgical experience. Proven leader with expertise in hemodynamic monitoring, ventilator management, and code response. CCRN-certified charge nurse with a track record of mentoring new graduates and driving quality improvement initiatives. Committed to evidence-based practice and exceptional patient outcomes.',
+  clinSkills:'ICU / Critical Care, Ventilator Management, Hemodynamic Monitoring, Vasoactive Drip Titration, Central Line Care, CRRT, Arterial Line Management, Wound Care & Assessment, IV Therapy & Phlebotomy, Telemetry Monitoring, Code Response / ACLS, 12-Lead EKG Interpretation',
+  profSkills:'Charge Nurse Leadership, Preceptorship & Mentoring, Critical Thinking, Team Collaboration, Patient Advocacy, Time Management, Quality Improvement, CLABSI/VAP Prevention',
+  certs:[
+    {name:'Registered Nurse (RN)',body:'State of Texas',expiry:'2026'},
+    {name:'Basic Life Support (BLS)',body:'AHA',expiry:'2026'},
+    {name:'Advanced Cardiovascular Life Support (ACLS)',body:'AHA',expiry:'2026'},
+    {name:'Critical Care Registered Nurse (CCRN)',body:'AACN',expiry:'2027'},
+    {name:'Pediatric Advanced Life Support (PALS)',body:'AHA',expiry:'2026'},
+  ],
+  edu:[
+    {deg:'Master of Science in Nursing (MSN)',school:'University of Texas at Austin',year:'2023'},
+    {deg:'Bachelor of Science in Nursing (BSN)',school:'University of Texas at Austin',year:'2019'},
+  ],
+  work:[
+    {title:'Registered Nurse — ICU (Charge)',emp:"St. David's Medical Center",loc:'Austin, TX',dates:'Jan 2022 – Present',
+     bullets:'Serve as charge nurse 3× per week coordinating assignments for a 16-nurse unit in 28-bed Level II ICU\nManage care for 2–3 critically ill patients per shift including post-surgical, trauma, and sepsis cases\nInitiate and titrate vasoactive drips, mechanical ventilation, and CRRT for hemodynamically unstable patients\nLed CLABSI prevention initiative reducing unit infections by 40% over 12 months\nPrecepted 6 new graduate nurses through 12-week structured orientation program'},
+    {title:'Registered Nurse — ICU',emp:"St. David's Medical Center",loc:'Austin, TX',dates:'Jun 2020 – Dec 2021',
+     bullets:'Provided direct care for 2–3 mechanically ventilated patients per shift in Level II ICU\nManaged complex hemodynamic monitoring including arterial lines, PA catheters, and continuous CO monitoring\nParticipated in rapid response and code blue teams as ACLS-certified responder\nTrained on CRRT initiation and management for acute kidney injury patients'},
+    {title:'Registered Nurse — Cardiac Step-Down',emp:'Ascension Seton Medical Center',loc:'Austin, TX',dates:'Mar 2019 – May 2020',
+     bullets:'Provided care for 4–5 patients per shift on 36-bed cardiac step-down unit including post-cath and heart failure\nPerformed 12-lead EKG acquisition and interpretation; initiated telemetry monitoring protocols\nCollaborated with cardiologists and case management to coordinate discharge planning\nRecognized as Employee of the Quarter for consistently achieving 98th percentile patient satisfaction scores'},
+    {title:'Registered Nurse — Med-Surg',emp:'Ascension Seton Medical Center',loc:'Austin, TX',dates:'Jul 2018 – Feb 2019',
+     bullets:'Managed 5–6 patients per shift on 32-bed surgical unit with focus on post-operative and orthopedic cases\nPerformed comprehensive wound assessments, dressing changes, and drain management\nCollaborated with interdisciplinary team including PT, OT, and social work for discharge planning\nCompleted charge nurse training and floated to step-down unit as needed'},
+    {title:'Graduate Nurse — ICU Residency',emp:"Dell Seton Medical Center at UT",loc:'Austin, TX',dates:'Jan 2018 – Jun 2018',
+     bullets:'Completed 6-month ICU nurse residency program with 1:1 preceptorship in 20-bed ICU\nDeveloped proficiency in hemodynamic monitoring, vasoactive medications, and ventilator management\nParticipated in weekly evidence-based practice seminars and simulation labs\nPresented quality improvement project on early mobilization in ICU patients'},
+    {title:'Patient Care Technician',emp:'St. Luke\'s Hospital',loc:'Houston, TX',dates:'May 2016 – Dec 2017',
+     bullets:'Assisted nursing staff with direct patient care for 8–10 patients per shift on medical-surgical unit\nPerformed vital signs, EKG recordings, phlebotomy, and foley catheter care\nMaintained accurate documentation in Epic EMR and communicated changes in patient condition to RN\nVolunteered as unit trainer for new PCT staff on EKG acquisition technique'},
+    {title:'Certified Nursing Assistant (CNA)',emp:'Brookdale Senior Living',loc:'Houston, TX',dates:'Jun 2015 – Apr 2016',
+     bullets:'Provided activities of daily living assistance for 12–15 long-term care residents per shift\nMonitored and documented vital signs, intake/output, and changes in resident condition\nBuilt therapeutic relationships with residents and families to support dignity and comfort\nReceived Caregiver Excellence Award for outstanding resident satisfaction'},
+    {title:'Medical Scribe',emp:'Austin Urgent Care',loc:'Austin, TX',dates:'Jan 2015 – May 2015',
+     bullets:'Documented real-time physician encounters in EMR for 30–40 patients per shift in urgent care setting\nTranscribed medical history, physical exam findings, diagnoses, and treatment plans\nFamiliarized with ICD-10 coding, medication databases, and clinical decision support tools'},
+  ],
+  rots:[
+    {setting:'Medical ICU (MICU)',facility:"Dell Seton Medical Center at UT",dates:'Spring 2018'},
+    {setting:'Cardiac Catheterization Lab',facility:"St. David's Heart & Vascular",dates:'Fall 2017'},
+    {setting:'Labor & Delivery',facility:"St. David's Women's Center",dates:'Spring 2017'},
+    {setting:'Pediatric Med-Surg',facility:"Dell Children's Medical Center",dates:'Fall 2016'},
+  ],
+  achieve:[
+    {name:'DAISY Award for Extraordinary Nurses',org:"St. David's Medical Center",date:'2023'},
+    {name:'Employee of the Quarter',org:'Ascension Seton Medical Center',date:'Q3 2019'},
+    {name:'Caregiver Excellence Award',org:'Brookdale Senior Living',date:'2016'},
+    {name:'ICU Quality Champion — CLABSI Reduction Project',org:"St. David's Medical Center",date:'2022'},
+    {name:'Dean\'s List, Nursing School of Excellence',org:'University of Texas at Austin',date:'2017–2019'},
+  ],
+  proDev:[
+    {name:'Critical Care Nursing Essentials',inst:'AACN',date:'2022'},
+    {name:'Hemodynamic Monitoring Certification',inst:'Edwards Lifesciences',date:'2021'},
+    {name:'Sepsis Management & Early Recognition',inst:'SCCM',date:'2023'},
+    {name:'CLABSI & VAP Prevention Strategies',inst:'APIC',date:'2022'},
+    {name:'Nurse Leadership & Charge Nurse Development',inst:'ANA',date:'2023'},
+  ],
+  refs:[
+    {name:'Jennifer Walters, MSN, RN',pos:'ICU Nurse Manager',co:"St. David's Medical Center, Austin TX",ph:'T: (555) 234-5678',em:'E: j.walters@stdavids.org'},
+    {name:'Dr. Carlos Reyes, MD',pos:'Critical Care Medical Director',co:"St. David's Medical Center, Austin TX",ph:'T: (555) 345-6789',em:'E: c.reyes@stdavids.org'},
+    {name:'Patricia Kim, BSN, RN',pos:'Charge Nurse / Peer',co:'Ascension Seton Medical Center',ph:'T: (555) 456-7890',em:'E: p.kim@seton.org'},
+    {name:'Dr. Susan Park, DNP',pos:'Nursing Professor',co:'University of Texas at Austin',ph:'T: (555) 567-8901',em:'E: s.park@utexas.edu'},
+  ],
+  clMgr:'Nurse Manager',clTitle:'Hiring Manager',clCompany:'Dell Seton Medical Center at UT',
+  clP1:"I am writing to express my strong interest in the ICU Registered Nurse position at Dell Seton Medical Center at UT. With nine years of progressive nursing experience — including six years in a high-acuity Level II ICU — I bring the clinical expertise, leadership skills, and dedication to patient-centered care that your team values.",
+  clP2:"As a CCRN-certified charge nurse at St. David's Medical Center, I have led complex care for mechanically ventilated and hemodynamically unstable patients while coordinating unit operations for a 16-nurse team. My CLABSI prevention initiative reduced unit infections by 40% in 12 months, reflecting my commitment to evidence-based quality improvement. I also take pride in mentoring the next generation of nurses through structured preceptorship.",
+  clP3:"Dell Seton's reputation for academic nursing excellence and its affiliation with UT Austin's College of Nursing make it an ideal environment for my continued professional growth. I would welcome the opportunity to contribute my critical care expertise and leadership to your team. Thank you sincerely for your consideration — I look forward to speaking with you.",
+};
+
+
+function collectData(){
+  const u={
+    fn:gv('fName')||DEF.fn, ln:gv('lName')||DEF.ln,
+    cr:gv('cred')||DEF.cr, jt:gv('jobTitle')||DEF.jt,
+    phone:gv('phone')||DEF.phone, email:gv('email')||DEF.email,
+    loc:gv('loc')||DEF.loc, li:gv('linkedin')||DEF.li,
+    summary:gv('summary')||DEF.summary,
+    clinSkills:gv('clinSkills')||DEF.clinSkills,
+    profSkills:gv('profSkills')||DEF.profSkills,
+  };
+  const certs=collectCerts(); const edu=collectEdu();
+  const work=collectWork(); const rots=collectRots();
+  const achieve=collectAch(); const proDev=collectPD(); const refs=collectRefs();
+  // WARN-01: detect sections still using DEF fallback
+  const useDEF=[];
+  if(!certs.length)   useDEF.push('Certifications');
+  if(!edu.length)     useDEF.push('Education');
+  if(!work.length)    useDEF.push('Work Experience');
+  if(!refs.length)    useDEF.push('References');
+  window.__usingDEF__ = useDEF;
+
+  return{
+    ...u,
+    certs:certs.length?certs:DEF.certs,
+    edu:edu.length?edu:DEF.edu,
+    work:work.length?work:DEF.work,
+    rots:rots.length?rots:DEF.rots,
+    achieve:achieve.length?achieve:DEF.achieve,
+    proDev:proDev.length?proDev:DEF.proDev,
+    refs:refs.length?refs:DEF.refs,
+    clMgr:gv('clMgr')||DEF.clMgr, clTitle:gv('clTitle')||DEF.clTitle,
+    clCompany:gv('clCompany')||DEF.clCompany,
+    clP1:gv('clP1')||DEF.clP1, clP2:gv('clP2')||DEF.clP2, clP3:gv('clP3')||DEF.clP3,
+  };
+}
+
+// ── MAIN RENDER ──
+function rp(){
+  const d=collectData();
+  applyMargins();
+  // Clean up extra page divs and gap markers from previous render
+  const scrollWrap=document.getElementById('resume-scroll-wrap');
+  if(scrollWrap){
+    scrollWrap.querySelectorAll('.paper:not(#prev-resume1)').forEach(p=>p.remove());
+    scrollWrap.querySelectorAll('.page-gap-marker').forEach(g=>g.remove());
+  }
+  const el1=document.getElementById('prev-resume1');
+  const elC=document.getElementById('prev-cover');
+  const elR=document.getElementById('prev-refs');
+  if(el1) el1.innerHTML=renderResume1(d);
+  if(elC) elC.innerHTML=renderCover(d);
+  if(elR) elR.innerHTML=renderRefs(d);
+  checkOverflow();
+  // Insert visual page break markers after render + layout
+  requestAnimationFrame(()=>{
+    const paper = document.getElementById('prev-resume1');
+    if(paper && prevMode==='resume1') insertPageBreaks(paper);
+  });
+}
+
+// ── SERVER MODE: POST order → /api/generate → ZIP download ──
+async function generateViaServer(fn,ln,delEmail){
+  // WARN-01: warn if any section still uses DEF sample data
+  collectData(); // populates window.__usingDEF__
+  if(window.__usingDEF__&&window.__usingDEF__.length){
+    const go=confirm('⚠️ These sections still contain sample data (Marina Thompson):\n\n• '+window.__usingDEF__.join('\n• ')+'\n\nGenerate anyway?');
+    if(!go) return;
+  }
+
+  const btn=document.getElementById('genBtn');
+  const statusEl=document.getElementById('genStatus');
+  btn.disabled=true;
+  statusEl.style.color='var(--mid)';
+
+  const d=collectData();
+  const orderId=gv('orderId')||Math.random().toString(36).substr(2,8).toUpperCase();
+
+  // Merge design state into data object
+  d.accent=accent; d.ver=ver; d.lang=currentLang; d._margins=Object.assign({},MG);
+  d._orderId=orderId;
+  d._orderDate=new Date().toISOString().slice(0,10);
+  d._customerEmail=delEmail;
+
+  try{
+    statusEl.textContent=T('stUploading');
+    document.getElementById('loading').classList.add('on');
+    document.getElementById('loadTxt').textContent=T('stGenerating');
+
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),120000); // 2 min timeout
+
+    const res=await fetch('/api/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(d),
+      signal:ctrl.signal,
+    });
+    clearTimeout(timer);
+
+    if(!res.ok){
+      const err=await res.json().catch(()=>({error:'Server error '+res.status}));
+      throw new Error(err.error||'Generation failed');
+    }
+
+    // USER-BUG-03: check overflow warning header before download
+    const overflowWarn = res.headers.get('X-Overflow-Warning');
+    statusEl.textContent=T('stPreparing');
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`${fn}_${ln}_Resume_Package.zip`; a.click();
+    URL.revokeObjectURL(url);
+
+    if(overflowWarn){
+      statusEl.textContent='⚠ Downloaded — but some content may overflow: '+overflowWarn+'.';
+      statusEl.style.color='#C4897A';
+    } else {
+      statusEl.textContent=T('stDone');
+      statusEl.style.color='#8FAF8F';
+    }
+
+    // Show output tab with summary
+    document.querySelectorAll('.prev-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.prev-tab')[4].classList.add('active');
+    ['resume1','cover','refs'].forEach(k=>{
+      const el=document.getElementById('prev-'+k); if(el) el.style.display='none';
+    });
+    document.getElementById('prev-output').style.display='block';
+    document.getElementById('outputContent').innerHTML=`
+      <div class="output-title">✓ Resume package downloaded</div>
+      <div class="file-list">
+        ${fn}_${ln}_Resume_USLetter.pdf<br>
+        ${fn}_${ln}_Resume_A4.pdf<br>
+        ${fn}_${ln}_Cover_Letter_USLetter.pdf<br>
+        ${fn}_${ln}_Cover_Letter_A4.pdf<br>
+        ${fn}_${ln}_References_USLetter.pdf<br>
+        ${fn}_${ln}_References_A4.pdf
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:#AAA">
+        Order: ${orderId} | ${new Date().toLocaleString()}
+      </div>`;
+    prevMode='output';
+
+  }catch(err){
+    if(err.name==='AbortError'){
+      statusEl.textContent=T('stTimeout');
+    } else {
+      statusEl.textContent='Error: '+err.message;
+    }
+    statusEl.style.color='#C4897A';
+  }finally{
+    btn.disabled=false;
+    document.getElementById('loading').classList.remove('on');
+  }
+}
+
+// ── GENERATE PDF FILES ──
+async function generateFiles(){
+  const fn=gv('fName'), ln=gv('lName'), delEmail=gv('delEmail');
+  if(!fn||!ln){alert('Please enter your name (Info tab).');return;}
+
+  // ── SERVER MODE (running via Express on Railway) ──────────────
+  if(location.protocol!=='file:'){
+    await generateViaServer(fn,ln,delEmail);
+    return;
+  }
+
+  const btn=document.getElementById('genBtn');
+  const statusEl=document.getElementById('genStatus');
+  btn.disabled=true;
+  statusEl.textContent='Loading fonts…';
+  statusEl.style.color='var(--mid)';
+
+  await document.fonts.ready;
+
+  const d=collectData();
+  const safeName=`${fn}_${ln}`;
+  const orderId=gv('orderId')||Math.random().toString(36).substring(2,8).toUpperCase();
+  const ts=new Date().toISOString().slice(0,10).replace(/-/g,'');
+
+  const {jsPDF}=window.jspdf;
+
+  const docs=[
+    {key:'resume1', label:'Resume'},
+    {key:'cover',   label:'Cover_Letter'},
+    {key:'refs',    label:'References'},
+  ];
+  const sizes=[
+    {name:'USLetter', fmt:'letter'},
+    {name:'A4',       fmt:'a4'},
+  ];
+
+  const generated=[];
+  let done=0;
+  const total=docs.length*sizes.length;
+
+  // ล็อก tab bar ระหว่าง generate
+  const prevTabBar=document.querySelector('.prev-tabs');
+  prevTabBar.style.pointerEvents='none';
+  prevTabBar.style.opacity='0.4';
+
+  const captureOpts={scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false};
+
+  for(const doc of docs){
+    // แสดง document ที่จะ capture ใน preview panel
+    // html2canvas ต้องการ element ที่ render จริงในหน้า — อ่านจาก preview โดยตรง
+    ['resume1','cover','refs'].forEach(k=>{
+      const el=document.getElementById('prev-'+k);
+      if(el) el.style.display='none';
+    });
+    document.getElementById('prev-'+doc.key).style.display='block';
+
+    // รอ 2 frames ให้ browser paint ก่อน capture
+    await new Promise(r=>requestAnimationFrame(r));
+    await new Promise(r=>requestAnimationFrame(r));
+
+    for(const sz of sizes){
+      done++;
+      statusEl.textContent=`Generating ${done}/${total} — ${doc.label} (${sz.name})…`;
+
+      const pdf=new jsPDF({unit:'mm',format:sz.fmt,orientation:'portrait'});
+      const pageW=pdf.internal.pageSize.getWidth();
+      const pageH=pdf.internal.pageSize.getHeight();
+
+      // ฟังก์ชันวาง canvas ลง PDF รักษา aspect ratio, ไม่ยืดตั้ง
+      const addPage=(canvas)=>{
+        const imgData=canvas.toDataURL('image/jpeg',0.95);
+        const imgH=(canvas.height/canvas.width)*pageW;
+        if(imgH>pageH*1.02){const pct=Math.round((imgH/pageH-1)*100);statusEl.textContent=`⚠ Content ${pct}% too tall — smart page breaking will handle this in server mode.`;}
+        pdf.addImage(imgData,'JPEG',0,0,pageW,Math.min(imgH,pageH));
+      };
+
+      const el=document.getElementById('prev-'+doc.key);
+      const canvas=await html2canvas(el,captureOpts);
+      addPage(canvas);
+
+      const filename=`${safeName}_${doc.label}_${sz.name}.pdf`;
+      pdf.save(filename);
+      generated.push(filename);
+
+      await new Promise(r=>setTimeout(r,200));
+    }
+  }
+
+  // คืนค่า UI
+  prevTabBar.style.pointerEvents='';
+  prevTabBar.style.opacity='';
+  rp();
+  btn.disabled=false;
+
+  // อัปเดต output box
+  const checks=[
+    {ok:!!fn&&!!ln, label:'Name'},
+    {ok:!!gv('phone')&&!!gv('email'), label:'Contact info'},
+    {ok:!!gv('summary'), label:'Profile summary'},
+    {ok:d.certs.length>0, label:'Certifications'},
+    {ok:d.edu.length>0, label:'Education'},
+    {ok:d.work.length>0, label:'Work experience'},
+    {ok:d.work.some(w=>w.bullets.trim().length>0), label:'Bullet points'},
+    {ok:!!gv('clinSkills'), label:'Clinical skills'},
+    {ok:d.refs.length>0, label:'References'},
+  ];
+  const checkHTML=checks.map(c=>
+    `<span style="color:${c.ok?'#8FAF8F':'#CCC'};margin-right:12px">${c.ok?'✓':'○'} ${c.label}</span>`
+  ).join('');
+  const tips=[];
+  if(!gv('summary')) tips.push('💡 Add a Profile Summary for stronger ATS matching.');
+  if(d.work.length===0) tips.push('💡 Add at least one Work Experience entry.');
+  if(d.certs.length===0) tips.push('💡 Add your RN License and certifications (BLS, ACLS).');
+  if(d.work.some(w=>!w.bullets)) tips.push('💡 Add bullet points — use action verbs + metrics.');
+  if(tips.length===0) tips.push('✦ Your resume data looks complete and well-structured!');
+
+  document.getElementById('outputContent').innerHTML=`
+    <div style="margin-bottom:14px">
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);margin-bottom:8px">Completeness Check</div>
+      <div style="font-size:10px;line-height:2.2;flex-wrap:wrap;display:flex">${checkHTML}</div>
+    </div>
+    <div class="output-title" style="margin-top:4px">✓ ${generated.length} PDFs Downloaded — Order ${orderId}</div>
+    <div class="file-list">${generated.map(f=>`📄 ${f}`).join('<br>')}</div>
+    <div style="margin-top:14px;padding:10px 14px;background:#FAFAF5;border-radius:3px;border-left:3px solid ${accent};font-size:10.5px;line-height:1.9;color:#444">
+      ${tips.join('<br>')}
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:#F5F5F5;border-radius:3px;font-size:10px;color:#777">
+      <strong>Next step:</strong> Upload the 6 PDFs to Google Drive: Orders / ${delEmail} / ${ts}-${orderId}/
+    </div>
+    <div style="margin-top:12px;font-size:10px;color:#AAA">Generated: ${new Date().toLocaleString()} | Order: ${orderId}</div>`;
+
+  document.querySelectorAll('.prev-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.prev-tab')[4].classList.add('active');
+  ['resume1','cover','refs'].forEach(k=>{
+    const el=document.getElementById('prev-'+k);
+    if(el) el.style.display='none';
+  });
+  document.getElementById('prev-output').style.display='block';
+  prevMode='output';
+  statusEl.textContent=`✓ ${generated.length} PDFs downloaded`;
+  statusEl.style.color='#8FAF8F';
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  // Load full DEF data into all form fields
+  loadDefaultData();
+  applyLang();
+  rp();
+
+  // ── PLAYWRIGHT / PRINT MODE ──
+  const _p=new URLSearchParams(location.search);
+  if(_p.get('print')==='1'){
+    if(window.__ORDER__){
+      const o=window.__ORDER__;
+      const _set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=String(v);};
+      _set('fName',o.fn);_set('lName',o.ln);_set('cred',o.cr);_set('jobTitle',o.jt);
+      _set('phone',o.phone);_set('email',o.email);_set('loc',o.loc);_set('linkedin',o.li);
+      _set('summary',o.summary);_set('clinSkills',o.clinSkills);_set('profSkills',o.profSkills);
+      _set('clMgr',o.clMgr);_set('clTitle',o.clTitle);_set('clCompany',o.clCompany);
+      _set('clP1',o.clP1);_set('clP2',o.clP2);_set('clP3',o.clP3);
+      if(o.accent){
+        const colorMap={beige:'#C9A87C',sage:'#8FAF8F',rose:'#C4897A',slate:'#7A95AF',mauve:'#A67B8A'};
+        const hex=colorMap[o.accent]||o.accent;
+        const sw=document.querySelector(`.sw[data-c="${o.accent}"]`)||document.querySelector('.sw');
+        setColor(hex,sw);
+      }
+      if(o.lang) setLang(o.lang);
+      if(o.ver){
+        const vtabMap={exp:0,newgrad:1};
+        const idx=vtabMap[o.ver]??0;
+        const vtabs=document.querySelectorAll('.vtab');
+        if(vtabs[idx]) setVer(o.ver,vtabs[idx]);
+      }
+      if(o.certs){document.getElementById('certsWrap').innerHTML='';certN=0;o.certs.forEach(c=>addCert(c.name||'',c.body||'',c.expiry||''));}
+      if(o.edu){document.getElementById('eduWrap').innerHTML='';eduN=0;o.edu.forEach(e=>addEdu(e.deg||'',e.school||'',e.year||''));}
+      if(o.work){document.getElementById('workWrap').innerHTML='';workN=0;o.work.forEach(w=>addWork(w.title||'',w.emp||'',w.loc||'',w.dates||'',w.bullets||''));}
+      if(o.rots){document.getElementById('rotWrap').innerHTML='';rotN=0;o.rots.forEach(r=>addRotation(r.setting||'',r.facility||'',r.dates||''));}
+      if(o.achieve){document.getElementById('achieveWrap').innerHTML='';achN=0;o.achieve.forEach(a=>addAchieve(a.name||'',a.org||'',a.date||''));}
+      if(o.proDev){document.getElementById('proDevWrap').innerHTML='';pdN=0;o.proDev.forEach(p=>addProDev(p.name||'',p.inst||'',p.date||''));}
+      if(o.refs){document.getElementById('refsWrap').innerHTML='';refN=0;o.refs.forEach(r=>addRef(r.name||'',r.pos||'',r.co||'',r.ph||'',r.em||''));}
+    }
+    document.querySelector('header').style.display='none';
+    document.querySelector('.form-panel').style.display='none';
+    document.querySelector('.prev-tabs').style.display='none';
+    document.querySelector('.loading').style.display='none';
+    const app=document.querySelector('.app');
+    app.style.cssText='display:block;height:auto;';
+    const pp=document.querySelector('.preview-panel');
+    pp.style.cssText='background:white;overflow:visible;';
+    const pb=document.querySelector('.prev-body');
+    pb.style.cssText='padding:0;align-items:flex-start;display:block;';
+    const target=_p.get('doc')||'resume1';
+    ['resume1','cover','refs'].forEach(k=>{
+      const el=document.getElementById('prev-'+k);
+      if(!el) return;
+      if(k===target){
+        // For resume1: the scroll-wrap container holds all page divs — show it
+        if(k==='resume1'){
+          const wrap=document.getElementById('resume-scroll-wrap');
+          if(wrap){wrap.style.cssText='display:block;max-width:none;width:100%;';}
+          el.style.cssText='display:block;max-width:none;width:100%;box-shadow:none;margin:0;';
+        } else {
+          el.style.cssText='display:block;max-width:none;width:100%;box-shadow:none;margin:0;';
+        }
+        el.classList.add('print-active');
+      } else {
+        el.style.display='none';
+        el.classList.remove('print-active');
+      }
+    });
+    const sizeMap={letter:'8.5in 11in',a4:'210mm 297mm'};
+    const sz=(_p.get('size')||'letter').toLowerCase();
+    const pageSt=document.createElement('style');
+    // Apply MG margins via @page so each printed page has correct margins
+    pageSt.textContent=`@page{size:${sizeMap[sz]||'8.5in 11in'};margin:0;}html,body{margin:0;padding:0;background:white!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}.preview-panel,.prev-body,.app{background:white!important;}.page-gap-marker{display:none!important;}`;
+    document.head.appendChild(pageSt);
+    // Apply margins from server injection if present
+    if(window.__MARGINS__){
+      const m=window.__MARGINS__;
+      ['top','bottom','left','right'].forEach(s=>{MG[s]=m[s]||MG[s];});
+      applyMargins();
+    }
+    rp();
+    document.fonts.ready.then(()=>{requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      // Run smart page-break injection so PDF layout matches preview
+      const paper=document.getElementById('prev-resume1');
+      if(paper) insertPageBreaks(paper);
+      // After split, apply box-shadow:none to all generated page divs
+      document.querySelectorAll('#resume-scroll-wrap .paper').forEach(p=>{
+        p.style.boxShadow='none';
+        p.style.maxWidth='none';
+        p.style.width='100%';
+        p.style.margin='0';
+      });
+      window.__PRINT_READY__=true;
+    }));});
+  }
+});
+</script>
+</body>
+</html>

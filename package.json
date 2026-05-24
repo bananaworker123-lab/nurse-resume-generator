@@ -1,0 +1,17 @@
+{
+  "name": "nurse-resume-generator",
+  "version": "2.0.0",
+  "description": "Nurse Resume Generator — Playwright PDF engine + Express API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "setup-local": "npx playwright install chromium",
+    "generate-local": "node generate-pdfs.js --order order.json --html nurse-resume-generator.html"
+  },
+  "dependencies": {
+    "archiver": "^7.0.0",
+    "express": "^4.19.2",
+    "playwright": "^1.44.0"
+  }
+}
