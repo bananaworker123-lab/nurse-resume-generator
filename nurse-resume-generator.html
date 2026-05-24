@@ -1127,8 +1127,7 @@ function loadDefaultData(){
   DEF.edu.forEach(e=>addEdu(e.deg,e.school,e.year));
 
   document.getElementById('workWrap').innerHTML=''; workN=0;
-  // USER-BUG-03: default shows 3 entries (fits 1-page); all 8 available via DEF.work for 2-page testing
-  DEF.work.slice(0,3).forEach(w=>addWork(w.title,w.emp,w.loc,w.dates,w.bullets));
+  DEF.work.forEach(w=>addWork(w.title,w.emp,w.loc,w.dates,w.bullets));
 
   document.getElementById('rotWrap').innerHTML=''; rotN=0;
   DEF.rots.forEach(r=>addRotation(r.setting,r.facility,r.dates));
@@ -1635,6 +1634,14 @@ const DEF={
      bullets:'Provided activities of daily living assistance for 12–15 long-term care residents per shift\nMonitored and documented vital signs, intake/output, and changes in resident condition\nBuilt therapeutic relationships with residents and families to support dignity and comfort\nReceived Caregiver Excellence Award for outstanding resident satisfaction'},
     {title:'Medical Scribe',emp:'Austin Urgent Care',loc:'Austin, TX',dates:'Jan 2015 – May 2015',
      bullets:'Documented real-time physician encounters in EMR for 30–40 patients per shift in urgent care setting\nTranscribed medical history, physical exam findings, diagnoses, and treatment plans\nFamiliarized with ICD-10 coding, medication databases, and clinical decision support tools'},
+    {title:'Nursing Intern — Emergency Department',emp:'University Medical Center',loc:'Austin, TX',dates:'Aug 2014 – Dec 2014',
+     bullets:'Completed 400-hour clinical internship in a Level I Trauma ED under direct RN supervision\nAssisted with triage, vital signs, wound care, and IV placement for 20–30 patients per shift\nParticipated in mass casualty drills and emergency response simulations\nDocumented patient assessments and interventions in MEDITECH EMR'},
+    {title:'Volunteer Nurse Extern — Community Health Clinic',emp:'People\'s Community Clinic',loc:'Austin, TX',dates:'May 2014 – Jul 2014',
+     bullets:'Provided free primary care support to underserved populations including blood pressure screenings and health education\nAssisted RNs with immunization clinics serving 50+ patients per session\nInterpreted patient education materials and coordinated referrals to specialist services\nRecognized by clinic director for exceptional patient communication skills'},
+    {title:'Home Health Aide',emp:'Comfort Keepers Home Care',loc:'Houston, TX',dates:'Jun 2013 – Apr 2014',
+     bullets:'Delivered in-home personal care and assistance to 6–8 clients with chronic illness, dementia, and post-surgical recovery\nMonitored and reported changes in client health status to supervising RN\nAdministered oral medications, performed wound dressing changes, and maintained accurate care logs\nBuilt trusted relationships with clients and families through consistent, compassionate care'},
+    {title:'Unit Coordinator / Ward Clerk',emp:'Memorial Hermann Hospital',loc:'Houston, TX',dates:'Jan 2013 – May 2013',
+     bullets:'Managed administrative operations for 40-bed medical-surgical unit including order transcription and chart maintenance\nCoordinated bed assignments, patient transport, and interdisciplinary communication for nursing staff\nProcessed physician orders and lab requisitions in Meditech with zero transcription errors\nReceived commendation from unit director for initiative in streamlining admit/discharge workflows'},
   ],
   rots:[
     {setting:'Medical ICU (MICU)',facility:"Dell Seton Medical Center at UT",dates:'Spring 2018'},
