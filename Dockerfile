@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev && npx playwright install chromium
+RUN npm install --omit=dev && npx playwright install chromium
 
 COPY . .
 ENV NODE_ENV=production
